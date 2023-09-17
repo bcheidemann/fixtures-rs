@@ -1,0 +1,7 @@
+[workspace]
+exclude = [
+  "playground",
+]
+members = [
+  "fixtures",
+]

@@ -1,0 +1,20 @@
+[package]
+name = "fixtures"
+version = "0.1.0"
+edition = "2021"
+authors = ["Ben Heidemann <ben@heidemann.dev>"]
+description = "Run tests against fixtures"
+categories = ["testing"]
+license = "MIT"
+license-file = "LICENSE"
+repository = "https://github.com/bcheidemann/fixtures-rs"
+readme = "README.md"
+
+[lib]
+proc-macro = true
+
+[dependencies]
+glob = "0.3.1"
+proc-macro2 = "1.0.67"
+quote = "1.0.33"
+syn = { version = "2.0.33", features = ["full", "parsing", "extra-traits", "visit", "visit-mut" ] }
