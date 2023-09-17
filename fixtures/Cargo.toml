@@ -9,6 +9,7 @@ license = "MIT"
 license-file = "LICENSE"
 repository = "https://github.com/bcheidemann/fixtures-rs"
 readme = "README.md"
+homepage = "https://github.com/bcheidemann/fixtures-rs"
 
 [lib]
 proc-macro = true
