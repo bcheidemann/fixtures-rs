@@ -8,6 +8,7 @@ categories = ["development-tools::testing"]
 repository = "https://github.com/bcheidemann/fixtures-rs"
 readme = "README.md"
 homepage = "https://github.com/bcheidemann/fixtures-rs"
+license-file = "LICENSE"
 
 [lib]
 proc-macro = true
