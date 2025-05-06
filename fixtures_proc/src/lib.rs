@@ -2,7 +2,7 @@ extern crate proc_macro;
 
 use proc_macro::TokenStream;
 use quote::quote;
-use syn::{Expr, ExprArray, Ident, ItemFn, Lit, LitStr, parse_macro_input, spanned::Spanned as _};
+use syn::{parse_macro_input, spanned::Spanned as _, Expr, ExprArray, Ident, ItemFn, Lit, LitStr};
 
 #[proc_macro_attribute]
 pub fn fixtures(args: TokenStream, input: TokenStream) -> TokenStream {
@@ -39,6 +39,7 @@ pub fn fixtures(args: TokenStream, input: TokenStream) -> TokenStream {
 
     let test_fn = parse_macro_input!(input as ItemFn);
 
+    let fn_attrs = &test_fn.attrs;
     let fn_name = &test_fn.sig.ident;
     let fn_args = &test_fn.sig.inputs;
     let fn_block = &test_fn.block;
@@ -70,6 +71,7 @@ pub fn fixtures(args: TokenStream, input: TokenStream) -> TokenStream {
 
             Some(quote! {
                 #[test]
+                #(#fn_attrs)*
                 fn #lit_test_name() {
                     #fn_name(::std::path::Path::new(#lit_file_path));
                 }

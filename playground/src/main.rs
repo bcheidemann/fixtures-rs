@@ -13,4 +13,10 @@ mod tests {
         let data = std::io::read_to_string(file).unwrap();
         assert_eq!(data, path.file_name().unwrap().to_string_lossy());
     }
+
+    #[fixtures(["fixtures/fail.txt"])]
+    #[ignore]
+    fn ignored(_: &Path) {
+        assert!(false);
+    }
 }
