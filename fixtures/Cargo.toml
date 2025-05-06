@@ -12,4 +12,4 @@ readme = "README.md"
 homepage = "https://github.com/bcheidemann/fixtures-rs"
 
 [dependencies]
-fixtures_proc = { "path" = "../fixtures_proc" }
+fixtures_proc = { "path" = "../fixtures_proc", version = "1" }
