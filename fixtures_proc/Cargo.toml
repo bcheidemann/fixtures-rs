@@ -1,5 +1,5 @@
 [package]
-name = "fixtures"
+name = "fixtures_proc"
 version = "1.0.0"
 edition = "2021"
 authors = ["Ben Heidemann <ben@heidemann.dev>"]
@@ -11,5 +11,17 @@ repository = "https://github.com/bcheidemann/fixtures-rs"
 readme = "README.md"
 homepage = "https://github.com/bcheidemann/fixtures-rs"
 
+[lib]
+proc-macro = true
+
 [dependencies]
-fixtures_proc = { "path" = "../fixtures_proc" }
+globwalk = "0.9.1"
+proc-macro2 = "1.0.67"
+quote = "1.0.33"
+syn = { version = "2.0.33", features = [
+    "full",
+    "parsing",
+    "extra-traits",
+    "visit",
+    "visit-mut",
+] }

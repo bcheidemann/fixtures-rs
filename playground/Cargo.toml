@@ -7,3 +7,6 @@ edition = "2021"
 
 [dependencies]
 fixtures = { path = "../fixtures" }
+
+[build-dependencies]
+fixtures = { path = "../fixtures" }

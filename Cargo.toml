@@ -1,7 +1,3 @@
 [workspace]
-exclude = [
-  "playground",
-]
-members = [
-  "fixtures",
-]
+exclude = ["playground"]
+members = ["fixtures", "fixtures_proc"]

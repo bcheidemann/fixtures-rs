@@ -4,6 +4,36 @@
 
 ## Usage
 
+### Installation
+
+```toml
+[dependencies]
+fixtures = "1"
+
+[build-dependencies]
+fixtures = "1"
+```
+
+### Setup
+
+Add the following code to `build.rs` to watch your fixtures directories for changes.
+
+```rs
+// build.rs
+use fixtures::build::watch_fixture_dir;
+
+fn main() {
+    watch_fixture_dir("path/to/fixtures");
+
+    // or...
+
+    watch_fixture_dir(&[
+        "path/to/fixtures",
+        // ...
+    ]);
+}
+```
+
 ### Basic Usage
 
 ```rs
