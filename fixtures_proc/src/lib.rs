@@ -119,6 +119,18 @@ pub fn fixtures(args: TokenStream, input: TokenStream) -> TokenStream {
                 }
             };
 
+            // EXPLANATION: This wraper function exists to avoid errors in top level #[test] functions, i.e. where there
+            //              is no enclosing #[cfg(test)] module. This error arrises because we generate a module with
+            //              references to each expansion. When building against cfg(not(test)), the #[test] expansion
+            //              would be removed, but the generated module would remain. This results in the EXPANSIONS
+            //              const holding references to a non-existant test function. This is avoided by adding a
+            //              wrapper function, which has the attributes from the original function, and calls an "impl"
+            //              function without the attributes. When building against cfg(not(test)), the wrapper function
+            //              is removed, but the "impl" function remains. Therefore, the EXPANSIONS const can safely hold
+            //              references to the "impl" functions. The downside of this is that any attributes applied
+            //              after #[fixtures(...)] are not applied to the "impl" function. In future, we might consider
+            //              fixing this issue by checking for the presence of a #[test] or #[cfg(test)] attribute and
+            //              instead applying a matching #[cfg(test)] attribute to the generated module.
             let wrapper_tokens = quote! {
                 #(#fn_attrs)*
                 fn #lit_wrapper_name(#fn_non_path_args) #fn_output {
