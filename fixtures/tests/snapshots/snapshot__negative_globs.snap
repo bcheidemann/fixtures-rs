@@ -34,11 +34,18 @@ pub const test_file_1_dot_txt: test::TestDescAndFn = test::TestDescAndFn {
     ),
 };
 fn test_file_1_dot_txt() {
-    test(
-        ::std::path::Path::new(
-            "<repo>/tests/fixtures/negative_globs/file_1.txt",
-        ),
-    );
+    test::file_1_dot_txt()
+}
+mod test {
+    use super::*;
+    pub fn file_1_dot_txt() {
+        test(
+            ::std::path::Path::new(
+                "<repo>/tests/fixtures/negative_globs/file_1.txt",
+            ),
+        )
+    }
+    pub const EXPANSIONS: &[fn()] = &[file_1_dot_txt];
 }
 #[allow(dead_code)]
 fn main() {}

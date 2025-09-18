@@ -105,3 +105,27 @@ mod tests {
   }
 }
 ```
+
+## Advanced Usage
+
+### Criterion
+
+`fixtures` can be used with [`criterion`](https://github.com/bheisler/criterion.rs) as shown in the following example:
+
+```rs
+#[fixtures(["fixtures/bench/*"])]
+fn bench(path: &std::path::Path, c: &mut Criterion) {
+  let test_name = fixture_path.file_name().unwrap().to_str().unwrap();
+  c.bench_function(test_name, |b| b.iter(|| { /* ... */ }));
+}
+
+// Equivalent to criterion_group!(benches, bench::expansion_1, bench::expansion_2, ...);
+fn benches() {
+  let mut c = Criterion::default().configure_from_args();
+  for bench in bench::EXPANSIONS {
+    bench(&mut criterion);
+  }
+}
+
+criterion_main!(benches);
+```

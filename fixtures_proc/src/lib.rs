@@ -2,7 +2,16 @@ extern crate proc_macro;
 
 use proc_macro::TokenStream;
 use quote::quote;
-use syn::{parse_macro_input, spanned::Spanned as _, Expr, ExprArray, Ident, ItemFn, Lit, LitStr};
+use syn::{
+    parse_macro_input, punctuated::Punctuated, spanned::Spanned as _, Expr, ExprArray, FnArg,
+    Ident, ItemFn, Lit, LitStr, Pat, Token,
+};
+
+struct TestFnExpansion {
+    impl_ident: Ident,
+    impl_tokens: proc_macro2::TokenStream,
+    wrapper_tokens: proc_macro2::TokenStream,
+}
 
 #[proc_macro_attribute]
 pub fn fixtures(args: TokenStream, input: TokenStream) -> TokenStream {
@@ -42,11 +51,34 @@ pub fn fixtures(args: TokenStream, input: TokenStream) -> TokenStream {
     let fn_attrs = &test_fn.attrs;
     let fn_name = &test_fn.sig.ident;
     let fn_args = &test_fn.sig.inputs;
+    let fn_output = &test_fn.sig.output;
     let fn_block = &test_fn.block;
+
+    let fn_non_path_args = {
+        let mut remaining_args = Punctuated::<&FnArg, Token![,]>::new();
+        for fn_arg in fn_args.iter().skip(1) {
+            remaining_args.push(fn_arg);
+        }
+        remaining_args
+    };
+    let fn_non_path_args_idents = {
+        let mut idents = Punctuated::<&Ident, Token![,]>::new();
+        for arg in fn_non_path_args.iter() {
+            if let FnArg::Typed(pat_ty) = arg {
+                if let Pat::Ident(ident) = pat_ty.pat.as_ref() {
+                    idents.push(&ident.ident);
+                    continue;
+                }
+            }
+            // TODO: proper error with span
+            panic!("invalid argument: {arg:?}");
+        }
+        idents
+    };
 
     let mut file_names = std::collections::HashMap::new();
 
-    let expanded = paths_iterator
+    let expansions = paths_iterator
         .filter_map(|path| {
             let file_name = path.file_name().to_str()?.to_owned();
             let fn_file_name = file_name
@@ -60,7 +92,15 @@ pub fn fixtures(args: TokenStream, input: TokenStream) -> TokenStream {
             );
             let similar_file_names = file_names.entry(file_name.clone()).or_insert(0usize);
             *similar_file_names += 1;
-            let lit_test_name = if *similar_file_names == 1 {
+            let lit_impl_name = if *similar_file_names == 1 {
+                Ident::new(&format!("{fn_file_name}"), fn_name.span())
+            } else {
+                Ident::new(
+                    &format!("{fn_file_name}_{similar_file_names}"),
+                    fn_name.span(),
+                )
+            };
+            let lit_wrapper_name = if *similar_file_names == 1 {
                 Ident::new(&format!("{fn_name}_{fn_file_name}"), fn_name.span())
             } else {
                 Ident::new(
@@ -69,16 +109,28 @@ pub fn fixtures(args: TokenStream, input: TokenStream) -> TokenStream {
                 )
             };
 
-            Some(quote! {
-                #(#fn_attrs)*
-                fn #lit_test_name() {
-                    #fn_name(::std::path::Path::new(#lit_file_path));
+            let impl_tokens = quote! {
+                pub fn #lit_impl_name(#fn_non_path_args) #fn_output {
+                    #fn_name(::std::path::Path::new(#lit_file_path), #fn_non_path_args_idents)
                 }
+            };
+
+            let wrapper_tokens = quote! {
+                #(#fn_attrs)*
+                fn #lit_wrapper_name(#fn_non_path_args) #fn_output {
+                    #fn_name::#lit_impl_name(#fn_non_path_args_idents)
+                }
+            };
+
+            Some(TestFnExpansion {
+                impl_ident: lit_impl_name,
+                impl_tokens,
+                wrapper_tokens,
             })
         })
         .collect::<Vec<_>>();
 
-    if expanded.is_empty() {
+    if expansions.is_empty() {
         return syn::Error::new(
             patterns.span(),
             format!("No valid files found for glob pattern: {glob_paths:?}"),
@@ -87,9 +139,32 @@ pub fn fixtures(args: TokenStream, input: TokenStream) -> TokenStream {
         .into();
     }
 
-    quote! {
-        fn #fn_name(#fn_args) #fn_block
-        #(#expanded)*
-    }
-    .into()
+    // TODO: Improve this (no clone needed)
+    let expanded_fns_impl_tokens = expansions
+        .iter()
+        .map(|expansion| expansion.impl_tokens.clone());
+    let expanded_fns_wrapper_tokens = expansions
+        .iter()
+        .map(|expansion| expansion.wrapper_tokens.clone());
+    let expanded_impl_idents = {
+        let mut impl_idents = Punctuated::<&Ident, Token![,]>::new();
+        for expansion in expansions.iter() {
+            impl_idents.push(&expansion.impl_ident);
+        }
+        impl_idents
+    };
+
+    let output = quote! {
+        fn #fn_name(#fn_args) #fn_output #fn_block
+        #(#expanded_fns_wrapper_tokens)*
+        mod #fn_name {
+            use super::*;
+
+            #(#expanded_fns_impl_tokens)*
+
+            pub const EXPANSIONS: &[fn(#fn_non_path_args) #fn_output] = &[#expanded_impl_idents];
+        }
+    };
+
+    output.into()
 }

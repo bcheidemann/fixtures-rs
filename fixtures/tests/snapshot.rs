@@ -41,8 +41,23 @@ fn basic_usage() {
 }
 
 #[test]
+fn complex_signatures() {
+    test_example_expansion("complex_signatures");
+}
+
+#[test]
+fn criterion() {
+    test_example_expansion("criterion");
+}
+
+#[test]
 fn ignore_attributes() {
     test_example_expansion("ignore_attributes");
+}
+
+#[test]
+fn multiple_fixtures() {
+    test_example_expansion("multiple_fixtures");
 }
 
 #[test]
