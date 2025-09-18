@@ -12,3 +12,7 @@ license-file = "LICENSE"
 
 [dependencies]
 fixtures_proc = { "path" = "../fixtures_proc", version = "1" }
+
+[dev-dependencies]
+indoc = "2.0.6"
+insta = { version = "1.43.2" }
