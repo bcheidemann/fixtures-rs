@@ -93,7 +93,7 @@ pub fn fixtures(args: TokenStream, input: TokenStream) -> TokenStream {
             let similar_file_names = file_names.entry(file_name.clone()).or_insert(0usize);
             *similar_file_names += 1;
             let lit_impl_name = if *similar_file_names == 1 {
-                Ident::new(&format!("{fn_file_name}"), fn_name.span())
+                Ident::new(&fn_file_name, fn_name.span())
             } else {
                 Ident::new(
                     &format!("{fn_file_name}_{similar_file_names}"),
