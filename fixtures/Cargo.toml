@@ -1,6 +1,6 @@
 [package]
 name = "fixtures"
-version = "2.0.0"
+version = "2.1.0"
 edition = "2021"
 authors = ["Ben Heidemann <ben@heidemann.dev>"]
 description = "Run tests against fixtures"
