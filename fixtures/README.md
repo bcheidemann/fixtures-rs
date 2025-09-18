@@ -42,6 +42,7 @@ mod tests {
   use fixtures::fixtures;
 
   #[fixtures(["fixtures/*.txt"])]
+  #[test]
   fn test(path: &std::path::Path) {
     // This test will be run once for each file matching the glob pattern
   }
@@ -81,6 +82,7 @@ mod tests {
   use fixtures::fixtures;
 
   #[fixtures(["fixtures/*.txt", "fixtures/*.data"])]
+  #[test]
   fn test(path: &std::path::Path) {
     // This test will be run once for each file matching either "fixtures/*.txt" or "fixtures/*.data"
   }
@@ -97,6 +99,7 @@ mod tests {
   use fixtures::fixtures;
 
   #[fixtures(["fixtures/*.{txt,data}", "!fixtures/skip.*.{txt,data}"])]
+  #[test]
   fn test(path: &std::path::Path) {
     // This test will be run once for each fixture with the extension `txt` or `data`, unless it is prefixed with `skip.`
   }

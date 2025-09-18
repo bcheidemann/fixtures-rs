@@ -1,6 +1,6 @@
 [package]
 name = "fixtures"
-version = "1.0.2"
+version = "2.0.0"
 edition = "2021"
 authors = ["Ben Heidemann <ben@heidemann.dev>"]
 description = "Run tests against fixtures"
@@ -11,7 +11,7 @@ homepage = "https://github.com/bcheidemann/fixtures-rs"
 license-file = "LICENSE"
 
 [dependencies]
-fixtures_proc = { "path" = "../fixtures_proc", version = "1" }
+fixtures_proc = { "path" = "../fixtures_proc", version = "2" }
 
 [dev-dependencies]
 indoc = "2.0.6"

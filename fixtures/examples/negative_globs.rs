@@ -6,6 +6,7 @@ use fixtures::fixtures;
     "fixtures/tests/fixtures/negative_globs/*.txt",
     "!fixtures/tests/fixtures/negative_globs/*.skip.txt",
 ])]
+#[test]
 fn test(_path: &Path) {}
 
 fn main() {}

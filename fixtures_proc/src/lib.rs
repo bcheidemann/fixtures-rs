@@ -70,7 +70,6 @@ pub fn fixtures(args: TokenStream, input: TokenStream) -> TokenStream {
             };
 
             Some(quote! {
-                #[test]
                 #(#fn_attrs)*
                 fn #lit_test_name() {
                     #fn_name(::std::path::Path::new(#lit_file_path));
