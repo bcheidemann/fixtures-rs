@@ -143,13 +143,8 @@ pub fn fixtures(args: TokenStream, input: TokenStream) -> TokenStream {
         .into();
     }
 
-    // TODO: Improve this (no clone needed)
-    let expanded_fns_impl_tokens = expansions
-        .iter()
-        .map(|expansion| expansion.impl_tokens.clone());
-    let expanded_fns_wrapper_tokens = expansions
-        .iter()
-        .map(|expansion| expansion.wrapper_tokens.clone());
+    let expanded_fns_impl_tokens = expansions.iter().map(|expansion| &expansion.impl_tokens);
+    let expanded_fns_wrapper_tokens = expansions.iter().map(|expansion| &expansion.wrapper_tokens);
     let expanded_impl_idents = {
         let mut impl_idents = Punctuated::<&Ident, Token![,]>::new();
         for expansion in expansions.iter() {
