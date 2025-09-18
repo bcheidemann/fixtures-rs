@@ -69,9 +69,13 @@ pub fn fixtures(args: TokenStream, input: TokenStream) -> TokenStream {
                     idents.push(&ident.ident);
                     continue;
                 }
+                return syn::Error::new(arg.span(), "Expected an identity, but found a pattern")
+                    .to_compile_error()
+                    .into();
             }
-            // TODO: proper error with span
-            panic!("invalid argument: {arg:?}");
+            return syn::Error::new(arg.span(), "Unexpected receiver argument")
+                .to_compile_error()
+                .into();
         }
         idents
     };
