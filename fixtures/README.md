@@ -48,18 +48,15 @@ fixtures = "1"
 Add the following code to `build.rs` to watch your fixtures directories for changes.
 
 ```rs
-// build.rs
-use fixtures::build::watch_fixture_dir;
-
 fn main() {
-    watch_fixture_dir("path/to/fixtures");
+  fixtures::build::watch_dir("path/to/fixtures");
 
-    // or...
+  // or...
 
-    watch_fixture_dir(&[
-        "path/to/fixtures",
-        // ...
-    ]);
+  fixtures::build::watch_dirs(&[
+    "path/to/fixtures",
+    // ...
+  ]);
 }
 ```
 
