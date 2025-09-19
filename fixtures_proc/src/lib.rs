@@ -3,14 +3,13 @@ extern crate proc_macro;
 use proc_macro::TokenStream;
 use quote::quote;
 use syn::{
-    parse_macro_input, punctuated::Punctuated, spanned::Spanned as _, Expr, ExprArray, FnArg,
-    Ident, ItemFn, Lit, LitStr, Pat, Token,
+    parse_macro_input, parse_quote, punctuated::Punctuated, spanned::Spanned as _, AttrStyle, Expr,
+    ExprArray, FnArg, Ident, ItemFn, Lit, LitStr, Meta, Pat, Path, Token,
 };
 
 struct TestFnExpansion {
-    impl_ident: Ident,
-    impl_tokens: proc_macro2::TokenStream,
-    wrapper_tokens: proc_macro2::TokenStream,
+    ident: Ident,
+    tokens: proc_macro2::TokenStream,
 }
 
 #[proc_macro_attribute]
@@ -80,6 +79,24 @@ pub fn fixtures(args: TokenStream, input: TokenStream) -> TokenStream {
         idents
     };
 
+    let is_test = fn_attrs.iter().any(|attr| {
+        if attr.style != AttrStyle::Outer {
+            return false;
+        }
+        if let Meta::Path(Path {
+            leading_colon: None,
+            segments,
+        }) = &attr.meta
+        {
+            if segments.len() != 1 {
+                return false;
+            }
+            let path_segment = segments.first().unwrap();
+            return path_segment.ident == "test";
+        }
+        false
+    });
+
     let mut file_names = std::collections::HashMap::new();
 
     let expansions = paths_iterator
@@ -96,7 +113,7 @@ pub fn fixtures(args: TokenStream, input: TokenStream) -> TokenStream {
             );
             let similar_file_names = file_names.entry(file_name.clone()).or_insert(0usize);
             *similar_file_names += 1;
-            let lit_impl_name = if *similar_file_names == 1 {
+            let ident = if *similar_file_names == 1 {
                 Ident::new(&fn_file_name, fn_name.span())
             } else {
                 Ident::new(
@@ -104,45 +121,13 @@ pub fn fixtures(args: TokenStream, input: TokenStream) -> TokenStream {
                     fn_name.span(),
                 )
             };
-            let lit_wrapper_name = if *similar_file_names == 1 {
-                Ident::new(&format!("{fn_name}_{fn_file_name}"), fn_name.span())
-            } else {
-                Ident::new(
-                    &format!("{fn_name}_{fn_file_name}_{similar_file_names}"),
-                    fn_name.span(),
-                )
-            };
-
-            let impl_tokens = quote! {
-                pub fn #lit_impl_name(#fn_non_path_args) #fn_output {
+            let tokens = quote! {
+                #(#fn_attrs)*
+                pub fn #ident(#fn_non_path_args) #fn_output {
                     #fn_name(::std::path::Path::new(#lit_file_path), #fn_non_path_args_idents)
                 }
             };
-
-            // EXPLANATION: This wraper function exists to avoid errors in top level #[test] functions, i.e. where there
-            //              is no enclosing #[cfg(test)] module. This error arrises because we generate a module with
-            //              references to each expansion. When building against cfg(not(test)), the #[test] expansion
-            //              would be removed, but the generated module would remain. This results in the EXPANSIONS
-            //              const holding references to a non-existant test function. This is avoided by adding a
-            //              wrapper function, which has the attributes from the original function, and calls an "impl"
-            //              function without the attributes. When building against cfg(not(test)), the wrapper function
-            //              is removed, but the "impl" function remains. Therefore, the EXPANSIONS const can safely hold
-            //              references to the "impl" functions. The downside of this is that any attributes applied
-            //              after #[fixtures(...)] are not applied to the "impl" function. In future, we might consider
-            //              fixing this issue by checking for the presence of a #[test] or #[cfg(test)] attribute and
-            //              instead applying a matching #[cfg(test)] attribute to the generated module.
-            let wrapper_tokens = quote! {
-                #(#fn_attrs)*
-                fn #lit_wrapper_name(#fn_non_path_args) #fn_output {
-                    #fn_name::#lit_impl_name(#fn_non_path_args_idents)
-                }
-            };
-
-            Some(TestFnExpansion {
-                impl_ident: lit_impl_name,
-                impl_tokens,
-                wrapper_tokens,
-            })
+            Some(TestFnExpansion { ident, tokens })
         })
         .collect::<Vec<_>>();
 
@@ -155,25 +140,30 @@ pub fn fixtures(args: TokenStream, input: TokenStream) -> TokenStream {
         .into();
     }
 
-    let expanded_fns_impl_tokens = expansions.iter().map(|expansion| &expansion.impl_tokens);
-    let expanded_fns_wrapper_tokens = expansions.iter().map(|expansion| &expansion.wrapper_tokens);
-    let expanded_impl_idents = {
+    let fn_expansions = expansions.iter().map(|expansion| &expansion.tokens);
+    let expansion_idents = {
         let mut impl_idents = Punctuated::<&Ident, Token![,]>::new();
         for expansion in expansions.iter() {
-            impl_idents.push(&expansion.impl_ident);
+            impl_idents.push(&expansion.ident);
         }
         impl_idents
     };
 
+    let maybe_cfg_test_attr = if is_test {
+        parse_quote!(#[cfg(test)])
+    } else {
+        proc_macro2::TokenStream::new()
+    };
+
     let output = quote! {
         fn #fn_name(#fn_args) #fn_output #fn_block
-        #(#expanded_fns_wrapper_tokens)*
+        #maybe_cfg_test_attr
         mod #fn_name {
             use super::*;
 
-            #(#expanded_fns_impl_tokens)*
+            #(#fn_expansions)*
 
-            pub const EXPANSIONS: &[fn(#fn_non_path_args) #fn_output] = &[#expanded_impl_idents];
+            pub const EXPANSIONS: &[fn(#fn_non_path_args) #fn_output] = &[#expansion_idents];
         }
     };
 

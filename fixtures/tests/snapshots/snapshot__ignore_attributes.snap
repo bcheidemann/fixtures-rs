@@ -10,35 +10,32 @@ extern crate std;
 use std::path::Path;
 use fixtures::fixtures;
 fn test(_path: &Path) {}
-extern crate test;
-#[rustc_test_marker = "test_file_1_dot_txt"]
-#[doc(hidden)]
-pub const test_file_1_dot_txt: test::TestDescAndFn = test::TestDescAndFn {
-    desc: test::TestDesc {
-        name: test::StaticTestName("test_file_1_dot_txt"),
-        ignore: true,
-        ignore_message: ::core::option::Option::None,
-        source_file: "fixtures/examples/ignore_attributes.rs",
-        start_line: 8usize,
-        start_col: 4usize,
-        end_line: 8usize,
-        end_col: 8usize,
-        compile_fail: false,
-        no_run: false,
-        should_panic: test::ShouldPanic::No,
-        test_type: test::TestType::Unknown,
-    },
-    testfn: test::StaticTestFn(
-        #[coverage(off)]
-        || test::assert_test_result(test_file_1_dot_txt()),
-    ),
-};
-#[ignore]
-fn test_file_1_dot_txt() {
-    test::file_1_dot_txt()
-}
 mod test {
     use super::*;
+    extern crate test;
+    #[rustc_test_marker = "test::file_1_dot_txt"]
+    #[doc(hidden)]
+    pub const file_1_dot_txt: test::TestDescAndFn = test::TestDescAndFn {
+        desc: test::TestDesc {
+            name: test::StaticTestName("test::file_1_dot_txt"),
+            ignore: true,
+            ignore_message: ::core::option::Option::None,
+            source_file: "fixtures/examples/ignore_attributes.rs",
+            start_line: 8usize,
+            start_col: 4usize,
+            end_line: 8usize,
+            end_col: 8usize,
+            compile_fail: false,
+            no_run: false,
+            should_panic: test::ShouldPanic::No,
+            test_type: test::TestType::Unknown,
+        },
+        testfn: test::StaticTestFn(
+            #[coverage(off)]
+            || test::assert_test_result(file_1_dot_txt()),
+        ),
+    };
+    #[ignore]
     pub fn file_1_dot_txt() {
         test(
             ::std::path::Path::new(
@@ -55,5 +52,5 @@ fn main() {}
 #[doc(hidden)]
 pub fn main() -> () {
     extern crate test;
-    test::test_main_static(&[&test_file_1_dot_txt])
+    test::test_main_static(&[&file_1_dot_txt])
 }

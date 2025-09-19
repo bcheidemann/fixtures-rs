@@ -17,13 +17,6 @@ fn complex_fn(
 ) -> Result<String, ()> {
     Ok("hello world!".to_string())
 }
-fn complex_fn_file_1_dot_txt(
-    _owned: String,
-    _mutable: &mut String,
-    _borrowed: &str,
-) -> Result<String, ()> {
-    complex_fn::file_1_dot_txt(_owned, _mutable, _borrowed)
-}
 mod complex_fn {
     use super::*;
     pub fn file_1_dot_txt(

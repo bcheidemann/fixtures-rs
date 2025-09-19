@@ -11,9 +11,6 @@ use std::path::Path;
 use fixtures::fixtures;
 struct Criterion;
 fn bench(_path: &Path, _c: &mut Criterion) {}
-fn bench_file_1_dot_txt(_c: &mut Criterion) {
-    bench::file_1_dot_txt(_c)
-}
 mod bench {
     use super::*;
     pub fn file_1_dot_txt(_c: &mut Criterion) {
