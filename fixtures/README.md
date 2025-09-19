@@ -1,6 +1,7 @@
 # fixtures
 
-`fixtures` is a Rust crate which allows developers to run tests against fixture files.
+`fixtures` is a Rust crate which allows developers to run tests against fixture files. It provides a procedural macro
+to generate tests from the filesystem, using glob patterns.
 
 ## Usage
 
