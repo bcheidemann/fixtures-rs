@@ -156,6 +156,7 @@ pub fn fixtures(args: TokenStream, input: TokenStream) -> TokenStream {
     };
 
     let output = quote! {
+        #maybe_cfg_test_attr
         fn #fn_name(#fn_args) #fn_output #fn_block
         #maybe_cfg_test_attr
         mod #fn_name {
