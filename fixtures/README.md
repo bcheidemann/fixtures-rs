@@ -3,6 +3,22 @@
 `fixtures` is a Rust crate which allows developers to run tests against fixture files. It provides a procedural macro
 to generate tests from the filesystem, using glob patterns.
 
+## Example
+
+```rs
+#[fixtures(["fixtures/*.txt"])]
+#[test]
+fn test(path: &std::path::Path) {
+// This test will be run once for each file matching the glob pattern
+}
+```
+
+To ensure tests re-run when the fixtures change, add the following line to `build.rs`.
+
+```rs
+fixtures::build::watch_dir("fixtures");
+```
+
 ## Usage
 
 ### Installation
