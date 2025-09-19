@@ -19,6 +19,18 @@ To ensure tests re-run when the fixtures change, add the following line to `buil
 fixtures::build::watch_dir("fixtures");
 ```
 
+## Comparison to [`datatest-stable`](https://crates.io/crates/datatest-stable)
+
+|                                                    | fixtures | datatest-stable |
+| -------------------------------------------------- | -------- | --------------- |
+| Requires setting `harness = false` in `Cargo.toml` | 🏅 no    | yes             |
+| Supports non-test configurations e.g. `criterion`  | 🏅 yes   | no              |
+| Supports embedding directories at compile time     | no       | 🏅 yes          |
+| Works with `cargo-nextest`                         | 🏅 yes   | 🏅 yes          |
+| Supports arbitrary function signatures             | 🏅 yes   | no              |
+| Supports automatically injecting file contents     | no       | 🏅 yes          |
+| Allows `#[ignore]`ing tests by glob patterns       | 🚧 wip   | no              |
+
 ## Usage
 
 ### Installation
