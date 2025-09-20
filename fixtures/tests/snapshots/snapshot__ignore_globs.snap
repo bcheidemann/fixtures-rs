@@ -1,0 +1,159 @@
+---
+source: fixtures/tests/snapshot.rs
+expression: expansion
+---
+#![feature(prelude_import)]
+#[prelude_import]
+use std::prelude::rust_2021::*;
+#[macro_use]
+extern crate std;
+use std::path::Path;
+use fixtures::fixtures;
+fn test1(_path: &Path) {}
+mod test1 {
+    use super::*;
+    extern crate test;
+    #[rustc_test_marker = "test1::file_1_dot_txt"]
+    #[doc(hidden)]
+    pub const file_1_dot_txt: test::TestDescAndFn = test::TestDescAndFn {
+        desc: test::TestDesc {
+            name: test::StaticTestName("test1::file_1_dot_txt"),
+            ignore: false,
+            ignore_message: ::core::option::Option::None,
+            source_file: "fixtures/examples/ignore_globs.rs",
+            start_line: 12usize,
+            start_col: 4usize,
+            end_line: 12usize,
+            end_col: 9usize,
+            compile_fail: false,
+            no_run: false,
+            should_panic: test::ShouldPanic::No,
+            test_type: test::TestType::Unknown,
+        },
+        testfn: test::StaticTestFn(
+            #[coverage(off)]
+            || test::assert_test_result(file_1_dot_txt()),
+        ),
+    };
+    pub fn file_1_dot_txt() {
+        test1(
+            ::std::path::Path::new(
+                "<repo>/tests/fixtures/ignore_globs/file_1.txt",
+            ),
+        )
+    }
+    extern crate test;
+    #[rustc_test_marker = "test1::file_2_dot_ignore_dot_txt"]
+    #[doc(hidden)]
+    pub const file_2_dot_ignore_dot_txt: test::TestDescAndFn = test::TestDescAndFn {
+        desc: test::TestDesc {
+            name: test::StaticTestName("test1::file_2_dot_ignore_dot_txt"),
+            ignore: true,
+            ignore_message: ::core::option::Option::Some("reason for ignoring file"),
+            source_file: "fixtures/examples/ignore_globs.rs",
+            start_line: 12usize,
+            start_col: 4usize,
+            end_line: 12usize,
+            end_col: 9usize,
+            compile_fail: false,
+            no_run: false,
+            should_panic: test::ShouldPanic::No,
+            test_type: test::TestType::Unknown,
+        },
+        testfn: test::StaticTestFn(
+            #[coverage(off)]
+            || test::assert_test_result(file_2_dot_ignore_dot_txt()),
+        ),
+    };
+    #[ignore = "reason for ignoring file"]
+    pub fn file_2_dot_ignore_dot_txt() {
+        test1(
+            ::std::path::Path::new(
+                "<repo>/tests/fixtures/ignore_globs/file_2.ignore.txt",
+            ),
+        )
+    }
+    pub const EXPANSIONS: &[fn()] = &[file_1_dot_txt, file_2_dot_ignore_dot_txt];
+}
+fn test2(_path: &Path) {}
+mod test2 {
+    use super::*;
+    extern crate test;
+    #[rustc_test_marker = "test2::file_1_dot_txt"]
+    #[doc(hidden)]
+    pub const file_1_dot_txt: test::TestDescAndFn = test::TestDescAndFn {
+        desc: test::TestDesc {
+            name: test::StaticTestName("test2::file_1_dot_txt"),
+            ignore: false,
+            ignore_message: ::core::option::Option::None,
+            source_file: "fixtures/examples/ignore_globs.rs",
+            start_line: 19usize,
+            start_col: 4usize,
+            end_line: 19usize,
+            end_col: 9usize,
+            compile_fail: false,
+            no_run: false,
+            should_panic: test::ShouldPanic::No,
+            test_type: test::TestType::Unknown,
+        },
+        testfn: test::StaticTestFn(
+            #[coverage(off)]
+            || test::assert_test_result(file_1_dot_txt()),
+        ),
+    };
+    pub fn file_1_dot_txt() {
+        test2(
+            ::std::path::Path::new(
+                "<repo>/tests/fixtures/ignore_globs/file_1.txt",
+            ),
+        )
+    }
+    extern crate test;
+    #[rustc_test_marker = "test2::file_2_dot_ignore_dot_txt"]
+    #[doc(hidden)]
+    pub const file_2_dot_ignore_dot_txt: test::TestDescAndFn = test::TestDescAndFn {
+        desc: test::TestDesc {
+            name: test::StaticTestName("test2::file_2_dot_ignore_dot_txt"),
+            ignore: true,
+            ignore_message: ::core::option::Option::None,
+            source_file: "fixtures/examples/ignore_globs.rs",
+            start_line: 19usize,
+            start_col: 4usize,
+            end_line: 19usize,
+            end_col: 9usize,
+            compile_fail: false,
+            no_run: false,
+            should_panic: test::ShouldPanic::No,
+            test_type: test::TestType::Unknown,
+        },
+        testfn: test::StaticTestFn(
+            #[coverage(off)]
+            || test::assert_test_result(file_2_dot_ignore_dot_txt()),
+        ),
+    };
+    #[ignore]
+    pub fn file_2_dot_ignore_dot_txt() {
+        test2(
+            ::std::path::Path::new(
+                "<repo>/tests/fixtures/ignore_globs/file_2.ignore.txt",
+            ),
+        )
+    }
+    pub const EXPANSIONS: &[fn()] = &[file_1_dot_txt, file_2_dot_ignore_dot_txt];
+}
+#[allow(dead_code)]
+fn main() {}
+#[rustc_main]
+#[coverage(off)]
+#[doc(hidden)]
+pub fn main() -> () {
+    extern crate test;
+    test::test_main_static(
+        &[
+            &file_1_dot_txt,
+            &file_2_dot_ignore_dot_txt,
+            &file_1_dot_txt,
+            &file_2_dot_ignore_dot_txt,
+        ],
+    )
+}

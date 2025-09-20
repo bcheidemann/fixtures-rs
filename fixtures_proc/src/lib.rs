@@ -1,10 +1,13 @@
 extern crate proc_macro;
 
+mod parse;
+
+use ignore::overrides::OverrideBuilder;
 use proc_macro::TokenStream;
 use quote::quote;
 use syn::{
-    parse_macro_input, parse_quote, punctuated::Punctuated, spanned::Spanned as _, AttrStyle, Expr,
-    ExprArray, FnArg, Ident, ItemFn, Lit, LitStr, Meta, Pat, Path, Token,
+    parse_macro_input, parse_quote, punctuated::Punctuated, spanned::Spanned as _, AttrStyle,
+    FnArg, Ident, ItemFn, LitStr, Meta, Pat, Path, Token,
 };
 
 struct TestFnExpansion {
@@ -14,36 +17,46 @@ struct TestFnExpansion {
 
 #[proc_macro_attribute]
 pub fn fixtures(args: TokenStream, input: TokenStream) -> TokenStream {
-    let patterns = parse_macro_input!(args as ExprArray);
+    let args = parse_macro_input!(args as parse::args::Args);
 
-    let mut glob_paths = Vec::with_capacity(patterns.elems.len());
-
-    for glob_elem in &patterns.elems {
-        if let Expr::Lit(glob_lit) = glob_elem {
-            if let Lit::Str(ref glob_path) = glob_lit.lit {
-                glob_paths.push(glob_path);
-            } else {
-                return syn::Error::new(glob_lit.span(), "Expected a string literal")
-                    .to_compile_error()
-                    .into();
-            };
-        } else {
-            return syn::Error::new(glob_elem.span(), "Expected a string literal")
-                .to_compile_error()
-                .into();
-        }
-    }
-
+    let current_dir = std::env::current_dir().expect("failed to get current directory");
     let paths_iterator = globwalk::GlobWalkerBuilder::from_patterns(
-        std::env::current_dir().expect("failed to get current directory"),
-        &glob_paths
+        &current_dir,
+        &args
+            .include()
+            .paths()
             .iter()
-            .map(|glob_path| glob_path.value())
+            .map(|lit_glob_path| lit_glob_path.value())
             .collect::<Vec<_>>(),
     )
     .build()
     .expect("failed to build glob walker")
     .filter_map(Result::ok);
+
+    let ignore_matcher = if let Some(ignore_option) = args.ignore() {
+        let mut matcher_builder = OverrideBuilder::new(&current_dir);
+
+        for ignore_path in ignore_option.paths() {
+            if let Err(err) = matcher_builder.add(&ignore_path.value()) {
+                return syn::Error::new(ignore_path.span(), format!("{err}"))
+                    .to_compile_error()
+                    .into();
+            }
+        }
+
+        let Ok(ignore_matcher) = matcher_builder.build() else {
+            return syn::Error::new(
+                ignore_option.span(),
+                "Expected an identity, but found a pattern",
+            )
+            .to_compile_error()
+            .into();
+        };
+
+        Some(ignore_matcher)
+    } else {
+        None
+    };
 
     let test_fn = parse_macro_input!(input as ItemFn);
 
@@ -97,6 +110,24 @@ pub fn fixtures(args: TokenStream, input: TokenStream) -> TokenStream {
         false
     });
 
+    if let Some(ignore) = args.ignore() {
+        if !is_test {
+            return syn::Error::new(ignore.span(), "The ignore option is only valid for test functions. This function doesn't have a `#[test]` attribute.")
+                .to_compile_error()
+                .into();
+        }
+    } else {
+        // TODO: Move to parsing logic
+        if let Some(ignore_reason) = args.ignore_reason() {
+            return syn::Error::new(
+                ignore_reason.span(),
+                "Cannot provide ignore_reason without providing ignore",
+            )
+            .to_compile_error()
+            .into();
+        }
+    }
+
     let mut file_names = std::collections::HashMap::new();
 
     let expansions = paths_iterator
@@ -109,7 +140,7 @@ pub fn fixtures(args: TokenStream, input: TokenStream) -> TokenStream {
                 path.path()
                     .to_str()
                     .expect("file path should be valid UTF-8"),
-                patterns.span(),
+                args.include().span(),
             );
             let similar_file_names = file_names.entry(file_name.clone()).or_insert(0usize);
             *similar_file_names += 1;
@@ -121,8 +152,30 @@ pub fn fixtures(args: TokenStream, input: TokenStream) -> TokenStream {
                     fn_name.span(),
                 )
             };
+            let ignored = if let Some(ignore_matcher) = &ignore_matcher {
+                ignore_matcher
+                    .matched(
+                        path.path(),
+                        path.metadata()
+                            .expect("error accessing metadata for path")
+                            .is_dir(),
+                    )
+                    .is_whitelist()
+            } else {
+                false
+            };
+            let maybe_ignore_attr = if ignored {
+                if let Some(ignore_reason) = args.ignore_reason() {
+                    parse_quote!(#[ignore = #ignore_reason])
+                } else {
+                    parse_quote!(#[ignore])
+                }
+            } else {
+                proc_macro2::TokenStream::new()
+            };
             let tokens = quote! {
                 #(#fn_attrs)*
+                #maybe_ignore_attr
                 pub fn #ident(#fn_non_path_args) #fn_output {
                     #fn_name(::std::path::Path::new(#lit_file_path), #fn_non_path_args_idents)
                 }
@@ -132,12 +185,9 @@ pub fn fixtures(args: TokenStream, input: TokenStream) -> TokenStream {
         .collect::<Vec<_>>();
 
     if expansions.is_empty() {
-        return syn::Error::new(
-            patterns.span(),
-            format!("No valid files found for glob pattern: {glob_paths:?}"),
-        )
-        .into_compile_error()
-        .into();
+        return syn::Error::new(args.include().span(), "No valid files found".to_string())
+            .into_compile_error()
+            .into();
     }
 
     let fn_expansions = expansions.iter().map(|expansion| &expansion.tokens);

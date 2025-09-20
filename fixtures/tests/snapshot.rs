@@ -56,6 +56,11 @@ fn ignore_attributes() {
 }
 
 #[test]
+fn ignore_globs() {
+    test_example_expansion("ignore_globs");
+}
+
+#[test]
 fn multiple_fixtures() {
     test_example_expansion("multiple_fixtures");
 }

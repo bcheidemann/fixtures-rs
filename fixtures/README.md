@@ -134,6 +134,53 @@ mod tests {
 
 ## Advanced Usage
 
+### Ignoring Files
+
+Sometimes, you might want to ignore tests for one or more fixture files. If you want to skip generating the test
+entirely, you can simply use a negative glob, as discussed above. However, if you instead want to `#[ignore]` the test,
+you can do so as follows:
+
+```rs
+#[cfg(test)]
+mod tests {
+  use fixtures::fixtures;
+
+  #[fixtures(
+    ["fixtures/*.{txt,data}"],
+    ignore = ["fixtures/ignore.*.{txt,data}"],
+    ignore_reason = "Some reason for ignoring the test",
+  )]
+  #[test]
+  fn test(path: &std::path::Path) {
+    // This test will be run once for each fixture with the extension `txt` or `data`, unless it is prefixed with
+    // `ignore.`, in which case the test will be decorated with `#[ignore = "Some reason for ignoring the test"]`
+  }
+}
+```
+
+This feature is only available for test functions; those with a `#[test]` attribute.
+
+Note that the `ignore` glob will not be used to include files. This means that, for example, the ignore glob shown below
+would have no effect, since none of the files matched by the include glob, are matched by the ignore glob.
+
+```rs
+#[fixtures(
+  ["*.txt"],
+  ignore = ["*.txt.ignore"], // This won't work!
+)]
+fn test(path: &std::path::Path) {}
+```
+
+This can be fixed as shown in the following example.
+
+```rs
+#[fixtures(
+  ["*.txt{,.ignore}"],
+  ignore = ["*.txt.ignore"], // This works as expected 🥳
+)]
+fn test(path: &std::path::Path) {}
+```
+
 ### Criterion
 
 `fixtures` can be used with [`criterion`](https://github.com/bheisler/criterion.rs) as shown in the following example:
