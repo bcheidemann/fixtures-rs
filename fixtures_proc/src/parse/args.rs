@@ -1,15 +1,17 @@
 use syn::{
     ext::IdentExt as _,
     parse::{Parse, ParseStream},
-    Ident, LitStr, Token,
+    Ident, Token,
 };
 
-use super::{option_assignment::OptionAssignment, paths::Paths};
+use super::{
+    ignore_config::IgnoreConfig, option_assignment::OptionAssignment, paths::Paths,
+    spanned::Spanned as _,
+};
 
 pub struct Args {
     include: Paths,
-    ignore: Option<Paths>,
-    ignore_reason: Option<LitStr>,
+    ignore: Option<IgnoreConfig>,
 }
 
 impl Parse for Args {
@@ -18,7 +20,6 @@ impl Parse for Args {
         input.parse::<Option<Token![,]>>()?;
 
         let mut ignore = None;
-        let mut ignore_reason = None;
 
         while !input.is_empty() {
             if input.peek(Ident::peek_any) {
@@ -30,26 +31,16 @@ impl Parse for Args {
                                 "Duplicate ignore assignment",
                             ));
                         }
-                        ignore = Some(ignore_option_assignment.into_paths());
-                    }
-                    OptionAssignment::IgnoreReason(ignore_reason_option_assignment) => {
-                        if ignore_reason.is_some() {
-                            return Err(syn::Error::new(
-                                ignore_reason_option_assignment.span(),
-                                "Duplicate ignore_reason assignment",
-                            ));
-                        }
-                        ignore_reason = Some(ignore_reason_option_assignment.into_lit_str());
+                        ignore = Some(ignore_option_assignment.into_ignore_config());
                     }
                 }
             }
-            input.parse::<Option<Token![,]>>()?;
+            if input.is_empty() {
+                break;
+            }
+            input.parse::<Token![,]>()?;
         }
-        Ok(Args {
-            include,
-            ignore,
-            ignore_reason,
-        })
+        Ok(Args { include, ignore })
     }
 }
 
@@ -58,12 +49,8 @@ impl Args {
         &self.include
     }
 
-    pub fn ignore(&self) -> &Option<Paths> {
+    pub fn ignore(&self) -> &Option<IgnoreConfig> {
         &self.ignore
-    }
-
-    pub fn ignore_reason(&self) -> &Option<LitStr> {
-        &self.ignore_reason
     }
 }
 
@@ -97,7 +84,7 @@ mod tests {
         let args: Args = syn::parse_str(input).expect("Failed to parse args");
 
         assert!(args.ignore.is_some());
-        assert!(args.ignore.unwrap().paths().is_empty());
+        assert!(args.ignore.unwrap().paths().paths().is_empty());
     }
 
     #[test]
@@ -106,7 +93,7 @@ mod tests {
         let args: Args = syn::parse_str(input).expect("Failed to parse args");
 
         assert!(args.ignore.is_some());
-        assert!(args.ignore.unwrap().paths().is_empty());
+        assert!(args.ignore.unwrap().paths().paths().is_empty());
     }
 
     #[test]
@@ -119,8 +106,43 @@ mod tests {
 
         assert!(args.ignore.is_some());
         let ignore = args.ignore.unwrap();
-        assert_eq!(ignore.paths().len(), 1);
-        assert_eq!(ignore.paths()[0].value(), "fixtures/*.ignore.txt");
+        assert_eq!(ignore.paths().paths().len(), 1);
+        assert_eq!(
+            ignore.paths().paths()[0].path().value(),
+            "fixtures/*.ignore.txt"
+        );
+    }
+
+    #[test]
+    fn correctly_parses_complex_ignore() {
+        let input = r#"
+            ["fixtures/*.txt"],
+            ignore = {
+                paths = ["fixtures/*.ignore.txt"],
+                reason = "reason for ignoring file",
+            },
+        "#;
+        let args: Args = syn::parse_str(input).expect("Failed to parse args");
+
+        assert!(args.ignore.is_some());
+        assert_eq!(args.ignore.as_ref().unwrap().paths().paths().len(), 1);
+        assert_eq!(
+            args.ignore.as_ref().unwrap().paths().paths()[0]
+                .path()
+                .value(),
+            "fixtures/*.ignore.txt"
+        );
+        assert!(args.ignore.as_ref().unwrap().reason().is_some());
+        assert_eq!(
+            args.ignore
+                .as_ref()
+                .unwrap()
+                .reason()
+                .as_ref()
+                .unwrap()
+                .value(),
+            "reason for ignoring file",
+        );
     }
 
     #[test]
@@ -129,32 +151,6 @@ mod tests {
             ["fixtures/*.txt"],
             ignore = [],
             ignore = [],
-        "#;
-        let result = syn::parse_str::<Args>(input);
-
-        assert!(result.is_err());
-    }
-
-    #[test]
-    fn correctly_parses_ignore_with_reason() {
-        let input = r#"
-            ["fixtures/*.txt"],
-            ignore = [],
-            ignore_reason = "the provided reason",
-        "#;
-        let args: Args = syn::parse_str(input).expect("Failed to parse args");
-
-        assert!(args.ignore_reason.is_some());
-        assert_eq!(args.ignore_reason.unwrap().value(), "the provided reason");
-    }
-
-    #[test]
-    fn returns_error_on_duplicate_ignore_reason_assignments() {
-        let input = r#"
-            ["fixtures/*.txt"],
-            ignore = []
-            ignore_reason = "",
-            ignore_reason = "",
         "#;
         let result = syn::parse_str::<Args>(input);
 

@@ -1,9 +1,10 @@
 use proc_macro2::Span;
 use syn::{
     parse::{Parse, ParseStream},
-    spanned::Spanned,
     Expr, ExprArray, Lit, LitStr,
 };
+
+use super::spanned::Spanned;
 
 pub struct Paths {
     span: Span,
@@ -37,12 +38,14 @@ impl Parse for Paths {
 }
 
 impl Paths {
-    pub fn span(&self) -> Span {
-        self.span
-    }
-
     pub fn paths(&self) -> &Vec<LitStr> {
         &self.paths
+    }
+}
+
+impl Spanned for Paths {
+    fn span(&self) -> Span {
+        self.span
     }
 }
 

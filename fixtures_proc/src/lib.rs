@@ -1,13 +1,15 @@
 extern crate proc_macro;
 
+mod ignore_matcher;
 mod parse;
 
-use ignore::overrides::OverrideBuilder;
+use ignore_matcher::{IgnoreMatcher, MatchResult};
+use parse::spanned::Spanned;
 use proc_macro::TokenStream;
 use quote::quote;
 use syn::{
-    parse_macro_input, parse_quote, punctuated::Punctuated, spanned::Spanned as _, AttrStyle,
-    FnArg, Ident, ItemFn, LitStr, Meta, Pat, Path, Token,
+    parse_macro_input, parse_quote, punctuated::Punctuated, AttrStyle, FnArg, Ident, ItemFn,
+    LitStr, Meta, Pat, Path, Token,
 };
 
 struct TestFnExpansion {
@@ -33,29 +35,17 @@ pub fn fixtures(args: TokenStream, input: TokenStream) -> TokenStream {
     .expect("failed to build glob walker")
     .filter_map(Result::ok);
 
-    let ignore_matcher = if let Some(ignore_option) = args.ignore() {
-        let mut matcher_builder = OverrideBuilder::new(&current_dir);
-
-        for ignore_path in ignore_option.paths() {
-            if let Err(err) = matcher_builder.add(&ignore_path.value()) {
-                return syn::Error::new(ignore_path.span(), format!("{err}"))
+    let ignore_matcher = if let Some(config) = args.ignore() {
+        match IgnoreMatcher::new(config) {
+            Ok(matcher) => matcher,
+            Err((path, err)) => {
+                return syn::Error::new(path.span(), format!("{err}"))
                     .to_compile_error()
-                    .into();
+                    .into()
             }
         }
-
-        let Ok(ignore_matcher) = matcher_builder.build() else {
-            return syn::Error::new(
-                ignore_option.span(),
-                "Expected an identity, but found a pattern",
-            )
-            .to_compile_error()
-            .into();
-        };
-
-        Some(ignore_matcher)
     } else {
-        None
+        IgnoreMatcher::empty()
     };
 
     let test_fn = parse_macro_input!(input as ItemFn);
@@ -116,16 +106,6 @@ pub fn fixtures(args: TokenStream, input: TokenStream) -> TokenStream {
                 .to_compile_error()
                 .into();
         }
-    } else {
-        // TODO: Move to parsing logic
-        if let Some(ignore_reason) = args.ignore_reason() {
-            return syn::Error::new(
-                ignore_reason.span(),
-                "Cannot provide ignore_reason without providing ignore",
-            )
-            .to_compile_error()
-            .into();
-        }
     }
 
     let mut file_names = std::collections::HashMap::new();
@@ -152,26 +132,12 @@ pub fn fixtures(args: TokenStream, input: TokenStream) -> TokenStream {
                     fn_name.span(),
                 )
             };
-            let ignored = if let Some(ignore_matcher) = &ignore_matcher {
-                ignore_matcher
-                    .matched(
-                        path.path(),
-                        path.metadata()
-                            .expect("error accessing metadata for path")
-                            .is_dir(),
-                    )
-                    .is_whitelist()
-            } else {
-                false
-            };
-            let maybe_ignore_attr = if ignored {
-                if let Some(ignore_reason) = args.ignore_reason() {
-                    parse_quote!(#[ignore = #ignore_reason])
-                } else {
-                    parse_quote!(#[ignore])
-                }
-            } else {
-                proc_macro2::TokenStream::new()
+            let maybe_ignore_attr = match ignore_matcher.matched(path.path()) {
+                MatchResult::Matched {
+                    reason: Some(reason),
+                } => parse_quote!(#[ignore = #reason]),
+                MatchResult::Matched { reason: None } => parse_quote!(#[ignore]),
+                MatchResult::Unmatched => proc_macro2::TokenStream::new(),
             };
             let tokens = quote! {
                 #(#fn_attrs)*

@@ -5,8 +5,10 @@ use fixtures::fixtures;
 
 #[fixtures(
     ["fixtures/tests/fixtures/ignore_globs/*.txt"],
-    ignore = ["fixtures/tests/fixtures/ignore_globs/*.ignore.txt"],
-    ignore_reason = "reason for ignoring file",
+    ignore = {
+        paths = ["fixtures/tests/fixtures/ignore_globs/*.ignore.txt"],
+        reason = "reason for ignoring file",
+    },
 )]
 #[test]
 fn test1(_path: &Path) {}

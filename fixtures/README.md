@@ -148,8 +148,7 @@ mod tests {
 
   #[fixtures(
     ["fixtures/*.{txt,data}"],
-    ignore = ["fixtures/ignore.*.{txt,data}"],
-    ignore_reason = "Some reason for ignoring the test",
+    ignore = ["fixtures/ignored.txt"],
   )]
   #[test]
   fn test(path: &std::path::Path) {
@@ -157,6 +156,44 @@ mod tests {
     // `ignore.`, in which case the test will be decorated with `#[ignore = "Some reason for ignoring the test"]`
   }
 }
+```
+
+In some cases you may wish to provide a reason for ignoring the test case.
+
+```rs
+#[cfg(test)]
+mod tests {
+  use fixtures::fixtures;
+
+  #[fixtures(
+    ["fixtures/*.{txt,data}"],
+    ignore = [
+      { path = "fixtures/ignored.txt", reason = "reason for ignoring file" }
+    ],
+  )]
+  #[test]
+  fn test(path: &std::path::Path) {}
+}
+```
+
+The structure of the ignore option in EBNF notation is as follows:
+
+```ebnf
+Ignore                = IgnorePath | IgnorePathList | IgnoreObject ;
+
+IgnorePathList        = "[]" | "[" IgnorePath { "," IgnorePath } [ "," ] "]" ;
+IgnoreObject          = IgnorePathsOnly | IgnorePathsWithReason ;
+
+IgnorePathsOnly       = "{" "paths" "=" (IgnorePath | IgnorePathList) [ "," ] "}" ;
+IgnorePathsWithReason = "{" "paths" "=" (IgnorePath | IgnorePathList) "," "reason" "=" StringLiteral [ "," ] "}" ;
+
+IgnorePath            = StringLiteral | IgnorePathObject ;
+IgnorePathObject      = PathOnly | PathWithReason ;
+
+PathOnly              = "{" "path" "=" StringLiteral [ "," ] "}" ;
+PathWithReason        = "{" "path" "=" StringLiteral "," "reason" "=" StringLiteral [ "," ] "}" ;
+
+StringLiteral         = /* Rust string literal */
 ```
 
 This feature is only available for test functions; those with a `#[test]` attribute.

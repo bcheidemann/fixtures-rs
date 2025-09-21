@@ -41,6 +41,11 @@ fn basic_usage() {
 }
 
 #[test]
+fn complex_ignore_config() {
+    test_example_expansion("complex_ignore_config");
+}
+
+#[test]
 fn complex_signatures() {
     test_example_expansion("complex_signatures");
 }

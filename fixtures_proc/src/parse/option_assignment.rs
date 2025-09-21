@@ -1,14 +1,13 @@
 use proc_macro2::Span;
 use syn::{
     parse::{Parse, ParseStream},
-    Ident, LitStr, Token,
+    Ident, Token,
 };
 
-use super::paths::Paths;
+use super::{ignore_config::IgnoreConfig, spanned::Spanned};
 
 pub enum OptionAssignment {
     Ignore(IgnoreOptionAssignment),
-    IgnoreReason(IgnoreReasonOptionAssignment),
 }
 
 impl Parse for OptionAssignment {
@@ -19,9 +18,6 @@ impl Parse for OptionAssignment {
                 "ignore" => Ok(OptionAssignment::Ignore(
                     IgnoreOptionAssignment::parse_from_ident(input, ident)?,
                 )),
-                "ignore_reason" => Ok(OptionAssignment::IgnoreReason(
-                    IgnoreReasonOptionAssignment::parse_from_ident(input, ident)?,
-                )),
                 _ => Err(syn::Error::new(ident.span(), "Invalid option")),
             };
         }
@@ -31,56 +27,29 @@ impl Parse for OptionAssignment {
 
 pub struct IgnoreOptionAssignment {
     span: Span,
-    paths: Paths,
+    config: IgnoreConfig,
 }
 
 impl IgnoreOptionAssignment {
-    pub fn span(&self) -> Span {
-        self.span
-    }
-
-    pub fn into_paths(self) -> Paths {
-        self.paths
+    pub fn into_ignore_config(self) -> IgnoreConfig {
+        self.config
     }
 
     fn parse_from_ident(input: ParseStream, ident: Ident) -> syn::Result<Self> {
         input.parse::<Token![=]>()?;
-        let paths: Paths = input.parse()?;
+        let config: IgnoreConfig = input.parse()?;
         let span = ident
             .span()
-            .join(paths.span())
+            .join(config.span())
             // On non-nightly compilers, join will always return None
-            .unwrap_or_else(|| paths.span());
-        Ok(IgnoreOptionAssignment { span, paths })
+            .unwrap_or_else(|| config.span());
+        Ok(IgnoreOptionAssignment { span, config })
     }
 }
 
-pub struct IgnoreReasonOptionAssignment {
-    span: Span,
-    reason: LitStr,
-}
-
-impl IgnoreReasonOptionAssignment {
-    pub fn span(&self) -> Span {
+impl Spanned for IgnoreOptionAssignment {
+    fn span(&self) -> Span {
         self.span
-    }
-
-    pub fn into_lit_str(self) -> LitStr {
-        self.reason
-    }
-
-    fn parse_from_ident(input: ParseStream, ident: Ident) -> syn::Result<Self> {
-        input.parse::<Token![=]>()?;
-        let lit_str: LitStr = input.parse()?;
-        let span = ident
-            .span()
-            .join(lit_str.span())
-            // On non-nightly compilers, join will always return None
-            .unwrap_or_else(|| lit_str.span());
-        Ok(IgnoreReasonOptionAssignment {
-            span,
-            reason: lit_str,
-        })
     }
 }
 
@@ -95,10 +64,8 @@ mod tests {
             syn::parse_str(input).expect("Failed to parse option assignment");
 
         assert!(matches!(option_assignment, OptionAssignment::Ignore(_)));
-        let OptionAssignment::Ignore(ignore_option_assignment) = option_assignment else {
-            unreachable!();
-        };
-        assert!(ignore_option_assignment.paths.paths().is_empty());
+        let OptionAssignment::Ignore(ignore_option_assignment) = option_assignment;
+        assert!(ignore_option_assignment.config.paths().paths().is_empty());
     }
 
     #[test]
@@ -108,33 +75,13 @@ mod tests {
             syn::parse_str(input).expect("Failed to parse option assignment");
 
         assert!(matches!(option_assignment, OptionAssignment::Ignore(_)));
-        let OptionAssignment::Ignore(ignore_option_assignment) = option_assignment else {
-            unreachable!();
-        };
-        assert_eq!(ignore_option_assignment.paths.paths().len(), 1);
+        let OptionAssignment::Ignore(ignore_option_assignment) = option_assignment;
+        assert_eq!(ignore_option_assignment.config.paths().paths().len(), 1);
         assert_eq!(
-            ignore_option_assignment.paths.paths()[0].value(),
+            ignore_option_assignment.config.paths().paths()[0]
+                .path()
+                .value(),
             "fixtures/*.ignore.txt"
-        );
-    }
-
-    #[test]
-    fn correctly_parses_ignore_reason_option_assignment() {
-        let input = r#"ignore_reason = "the provided reason""#;
-        let option_assignment: OptionAssignment =
-            syn::parse_str(input).expect("Failed to parse option assignment");
-
-        assert!(matches!(
-            option_assignment,
-            OptionAssignment::IgnoreReason(_)
-        ));
-        let OptionAssignment::IgnoreReason(ignore_reason_option_assignment) = option_assignment
-        else {
-            unreachable!();
-        };
-        assert_eq!(
-            ignore_reason_option_assignment.reason.value(),
-            "the provided reason"
         );
     }
 }
