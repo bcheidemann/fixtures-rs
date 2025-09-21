@@ -38,10 +38,10 @@ fixtures::build::watch_dir("fixtures");
 
 ```toml
 [dependencies]
-fixtures = "1"
+fixtures = "2"
 
 [build-dependencies]
-fixtures = "1"
+fixtures = "2"
 ```
 
 ### Setup
