@@ -22,16 +22,16 @@ pub enum MatchResult<'config> {
 }
 
 impl<'config> IgnoreMatcher<'config> {
-    pub fn new(
+    pub fn new<P: AsRef<Path>>(
         config: &'config IgnoreConfig,
+        current_dir: P,
     ) -> Result<Self, (&'config IgnorePath, globset::Error)> {
         let globs = config
             .paths()
             .paths()
             .iter()
             .map(|path| {
-                let cwd = std::env::current_dir().unwrap();
-                let full_path = cwd.join(path.path().value());
+                let full_path = current_dir.as_ref().join(path.path().value());
                 match Glob::new(full_path.to_str().expect("expected UTF-8")) {
                     Ok(glob) => Ok(IgnoreGlob {
                         matcher: glob.compile_matcher(),

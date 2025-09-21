@@ -20,6 +20,12 @@ struct TestFnExpansion {
 #[proc_macro_attribute]
 pub fn fixtures(args: TokenStream, input: TokenStream) -> TokenStream {
     let args = parse_macro_input!(args as parse::args::Args);
+    let test_fn = parse_macro_input!(input as ItemFn);
+    let fn_attrs = &test_fn.attrs;
+    let fn_name = &test_fn.sig.ident;
+    let fn_args = &test_fn.sig.inputs;
+    let fn_output = &test_fn.sig.output;
+    let fn_block = &test_fn.block;
 
     let current_dir = std::env::current_dir().expect("failed to get current directory");
     let paths_iterator = globwalk::GlobWalkerBuilder::from_patterns(
@@ -36,7 +42,7 @@ pub fn fixtures(args: TokenStream, input: TokenStream) -> TokenStream {
     .filter_map(Result::ok);
 
     let ignore_matcher = if let Some(config) = args.ignore() {
-        match IgnoreMatcher::new(config) {
+        match IgnoreMatcher::new(config, current_dir) {
             Ok(matcher) => matcher,
             Err((path, err)) => {
                 return syn::Error::new(path.span(), format!("{err}"))
@@ -47,14 +53,6 @@ pub fn fixtures(args: TokenStream, input: TokenStream) -> TokenStream {
     } else {
         IgnoreMatcher::empty()
     };
-
-    let test_fn = parse_macro_input!(input as ItemFn);
-
-    let fn_attrs = &test_fn.attrs;
-    let fn_name = &test_fn.sig.ident;
-    let fn_args = &test_fn.sig.inputs;
-    let fn_output = &test_fn.sig.output;
-    let fn_block = &test_fn.block;
 
     let fn_non_path_args = {
         let mut remaining_args = Punctuated::<&FnArg, Token![,]>::new();
@@ -71,7 +69,7 @@ pub fn fixtures(args: TokenStream, input: TokenStream) -> TokenStream {
                     idents.push(&ident.ident);
                     continue;
                 }
-                return syn::Error::new(arg.span(), "Expected an identity, but found a pattern")
+                return syn::Error::new(arg.span(), "Expected an identifier, but found a pattern")
                     .to_compile_error()
                     .into();
             }
