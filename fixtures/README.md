@@ -64,55 +64,52 @@ fn main() {
 ### Basic Usage
 
 ```rs
-#[cfg(test)]
-mod tests {
-  use fixtures::fixtures;
+use fixtures::fixtures;
 
-  #[fixtures(["fixtures/*.txt"])]
-  #[test]
-  fn test(path: &std::path::Path) {
-    // This test will be run once for each file matching the glob pattern
-  }
+#[fixtures(["fixtures/*.txt"])]
+#[test]
+fn test(path: &std::path::Path) {
+  // This test will be run once for each file matching the glob pattern
 }
 ```
 
 The above example expands to:
 
 ```rs
-#[cfg(test)]
-mod tests {
-  use fixtures::fixtures;
+use fixtures::fixtures;
 
-  fn test(path: &std::path::Path) {
-    // This test will be run once for each file matching the glob pattern
-  }
+#[cfg(test)]
+fn test(path: &std::path::Path) {
+  // This test will be run once for each file matching the glob pattern
+}
+
+#[cfg(test)]
+mod test {
+  use super::*;
 
   #[test]
-  fn test_one_dot_txt_1() {
+  fn one_dot_txt() {
     test(::std::path::Path::new("fixtures/one.txt"));
   }
 
   #[test]
-  fn test_two_dot_txt_1() {
+  fn two_dot_txt() {
     test(::std::path::Path::new("fixtures/two.txt"));
   }
 
   // ...
+
+  pub const EXPANSIONS: &[fn()] = &[one_dot_txt, two_dot_txt];
 }
 ```
 
 ### Multiple Globs
 
 ```rs
-#[cfg(test)]
-mod tests {
-  use fixtures::fixtures;
-
-  #[fixtures(["fixtures/*.txt", "fixtures/*.data"])]
-  #[test]
-  fn test(path: &std::path::Path) {
-    // This test will be run once for each file matching either "fixtures/*.txt" or "fixtures/*.data"
-  }
+#[fixtures(["fixtures/*.txt", "fixtures/*.data"])]
+#[test]
+fn test(path: &std::path::Path) {
+  // This test will be run once for each file matching either "fixtures/*.txt" or "fixtures/*.data"
 }
 ```
 
@@ -121,15 +118,12 @@ mod tests {
 `fixtures` supports [`gitignore`'s extended glob syntax](https://git-scm.com/docs/gitignore#_pattern_format).
 
 ```rs
-#[cfg(test)]
-mod tests {
-  use fixtures::fixtures;
+use fixtures::fixtures;
 
-  #[fixtures(["fixtures/*.{txt,data}", "!fixtures/skip.*.{txt,data}"])]
-  #[test]
-  fn test(path: &std::path::Path) {
-    // This test will be run once for each fixture with the extension `txt` or `data`, unless it is prefixed with `skip.`
-  }
+#[fixtures(["fixtures/*.{txt,data}", "!fixtures/skip.*.{txt,data}"])]
+#[test]
+fn test(path: &std::path::Path) {
+  // This test will be run once for each fixture with the extension `txt` or `data`, unless it is prefixed with `skip.`
 }
 ```
 
@@ -142,19 +136,16 @@ entirely, you can simply use a negative glob, as discussed above. However, if yo
 you can do so as follows:
 
 ```rs
-#[cfg(test)]
-mod tests {
-  use fixtures::fixtures;
+use fixtures::fixtures;
 
-  #[fixtures(
-    ["fixtures/*.{txt,data}"],
-    ignore = ["fixtures/ignored.txt"],
-  )]
-  #[test]
-  fn test(path: &std::path::Path) {
-    // This test will be run once for each fixture with the extension `txt` or `data`, unless it is prefixed with
-    // `ignore.`, in which case the test will be decorated with `#[ignore = "Some reason for ignoring the test"]`
-  }
+#[fixtures(
+  ["fixtures/*.{txt,data}"],
+  ignore = ["fixtures/ignored.txt"],
+)]
+#[test]
+fn test(path: &std::path::Path) {
+  // This test will be run once for each fixture with the extension `txt` or `data`, except for `ignored.txt` which will
+  // show as "ignored" in the test output.
 }
 ```
 
@@ -162,18 +153,14 @@ In some cases you may wish to provide a reason for ignoring the test case.
 
 ```rs
 #[cfg(test)]
-mod tests {
-  use fixtures::fixtures;
-
-  #[fixtures(
-    ["fixtures/*.{txt,data}"],
-    ignore = [
-      { path = "fixtures/ignored.txt", reason = "reason for ignoring file" }
-    ],
-  )]
-  #[test]
-  fn test(path: &std::path::Path) {}
-}
+#[fixtures(
+  ["fixtures/*.{txt,data}"],
+  ignore = [
+    { path = "fixtures/ignored.txt", reason = "reason for ignoring file" }
+  ],
+)]
+#[test]
+fn test(path: &std::path::Path) {}
 ```
 
 The structure of the ignore option in EBNF notation is as follows:
