@@ -9,7 +9,7 @@ to generate tests from the filesystem, using glob patterns.
 #[fixtures(["fixtures/*.txt"])]
 #[test]
 fn test(path: &std::path::Path) {
-// This test will be run once for each file matching the glob pattern
+  // This test will be run once for each file matching the glob pattern
 }
 ```
 
