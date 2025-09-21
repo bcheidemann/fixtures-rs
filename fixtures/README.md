@@ -30,7 +30,7 @@ fixtures::build::watch_dir("fixtures");
 | Works with `cargo-nextest`                         | 🏅 yes   | no       | 🏅 yes          |
 | Supports arbitrary function signatures             | 🏅 yes   | no       | no              |
 | Supports automatically injecting file contents     | no       | 🏅 yes   | 🏅 yes          |
-| Allows `#[ignore]`ing tests by glob patterns       | 🚧 wip   | 🏅 yes   | no              |
+| Allows `#[ignore]`ing tests by glob patterns       | 🏅 yes   | 🏅 yes   | no              |
 
 ## Usage
 
