@@ -8,7 +8,7 @@ categories = ["development-tools::testing"]
 repository = "https://github.com/bcheidemann/fixtures-rs"
 readme = "README.md"
 homepage = "https://github.com/bcheidemann/fixtures-rs"
-license = "MIT"
+license = "MIT OR Apache-2.0"
 
 [dependencies]
 fixtures_proc = { "path" = "../fixtures_proc", version = "2" }
