@@ -1,6 +1,6 @@
 [package]
 name = "fixtures_proc"
-version = "2.3.2"
+version = "2.3.3"
 edition = "2021"
 authors = ["Ben Heidemann <ben@heidemann.dev>"]
 description = "Run tests against fixtures"
