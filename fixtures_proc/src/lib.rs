@@ -11,6 +11,7 @@ use syn::{
     parse_macro_input, parse_quote, punctuated::Punctuated, AttrStyle, FnArg, Ident, ItemFn,
     LitStr, Meta, Pat, Path, Token,
 };
+use unicode_xid::UnicodeXID;
 
 struct TestFnExpansion {
     ident: Ident,
@@ -111,9 +112,7 @@ pub fn fixtures(args: TokenStream, input: TokenStream) -> TokenStream {
     let expansions = paths_iterator
         .filter_map(|path| {
             let file_name = path.file_name().to_str()?.to_owned();
-            let fn_file_name = file_name
-                .replace('.', "_dot_")
-                .replace(|c: char| !c.is_ascii_alphanumeric(), "_");
+            let fn_file_name = file_name_to_valid_identifier(&file_name);
             let lit_file_path = LitStr::new(
                 path.path()
                     .to_str()
@@ -183,4 +182,90 @@ pub fn fixtures(args: TokenStream, input: TokenStream) -> TokenStream {
     };
 
     output.into()
+}
+
+/// See https://doc.rust-lang.org/reference/identifiers.html
+fn file_name_to_valid_identifier(file_name: &str) -> String {
+    if file_name.is_empty() {
+        return "test".to_string();
+    }
+
+    if file_name == "_" {
+        return "__".to_string();
+    }
+
+    if is_rust_keyword(file_name) {
+        return format!("_{file_name}");
+    }
+
+    file_name
+        .chars()
+        .enumerate()
+        .map(|(i, c)| match (i, c) {
+            (0, '.') => "dot_".to_string(),
+            (0, c) if c.is_numeric() => format!("_{c}"),
+            (0, c) if c != '_' && !UnicodeXID::is_xid_start(c) => "_".to_string(),
+            (_, '.') => "_dot_".to_string(),
+            (_, c) if !UnicodeXID::is_xid_continue(c) => "_".to_string(),
+            _ => c.to_string(),
+        })
+        .collect()
+}
+
+/// See https://doc.rust-lang.org/reference/keywords.html
+fn is_rust_keyword(s: &str) -> bool {
+    matches!(
+        s,
+        "as" | "break"
+            | "const"
+            | "continue"
+            | "crate"
+            | "else"
+            | "enum"
+            | "extern"
+            | "false"
+            | "fn"
+            | "for"
+            | "if"
+            | "impl"
+            | "in"
+            | "let"
+            | "loop"
+            | "match"
+            | "mod"
+            | "move"
+            | "mut"
+            | "pub"
+            | "ref"
+            | "return"
+            | "self"
+            | "Self"
+            | "static"
+            | "struct"
+            | "super"
+            | "trait"
+            | "true"
+            | "type"
+            | "unsafe"
+            | "use"
+            | "where"
+            | "while"
+            | "async"
+            | "await"
+            | "dyn"
+            | "abstract"
+            | "become"
+            | "box"
+            | "do"
+            | "final"
+            | "macro"
+            | "override"
+            | "priv"
+            | "typeof"
+            | "unsized"
+            | "virtual"
+            | "yield"
+            | "try"
+            | "gen",
+    )
 }

@@ -56,6 +56,11 @@ fn criterion() {
 }
 
 #[test]
+fn invalid_identifiers() {
+    test_example_expansion("invalid_identifiers");
+}
+
+#[test]
 fn ignore_attributes() {
     test_example_expansion("ignore_attributes");
 }
