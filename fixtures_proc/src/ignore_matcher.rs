@@ -1,9 +1,13 @@
 use std::path::Path;
 
 use globset::{Glob, GlobMatcher};
+use proc_macro2::Span;
 use syn::LitStr;
 
-use crate::parse::ignore_config::{IgnoreConfig, IgnorePath};
+use crate::parse::{
+    ignore_attribute::IgnoreAttribute, legacy_ignore_config::LegacyIgnoreConfig,
+    spanned::Spanned as _,
+};
 
 struct IgnoreGlob<'config> {
     matcher: GlobMatcher,
@@ -23,40 +27,50 @@ pub enum MatchResult<'config> {
 
 impl<'config> IgnoreMatcher<'config> {
     pub fn new<P: AsRef<Path>>(
-        config: &'config IgnoreConfig,
+        legacy_config: &'config Option<LegacyIgnoreConfig>,
+        ignore_args: &'config [IgnoreAttribute],
         current_dir: P,
-    ) -> Result<Self, (&'config IgnorePath, globset::Error)> {
-        let globs = config
-            .paths()
-            .paths()
-            .iter()
-            .map(|path| {
-                let full_path = current_dir.as_ref().join(path.path().value());
-                match Glob::new(full_path.to_str().expect("expected UTF-8")) {
-                    Ok(glob) => Ok(IgnoreGlob {
-                        matcher: glob.compile_matcher(),
-                        reason: path.reason().as_ref(),
-                    }),
-                    Err(err) => Err((path, err)),
-                }
-            })
-            .collect::<Result<Vec<_>, _>>()?;
+    ) -> Result<Self, (Span, globset::Error)> {
+        let globs = ignore_args.iter().map(|attr| {
+            let full_path = current_dir.as_ref().join(attr.args.path.value());
+            match Glob::new(full_path.to_str().expect("expected UTF-8")) {
+                Ok(glob) => Ok(IgnoreGlob {
+                    matcher: glob.compile_matcher(),
+                    reason: attr.args.reason.as_ref(),
+                }),
+                Err(err) => Err((attr.args.path.span(), err)),
+            }
+        });
+
+        let globs = if let Some(legacy_config) = legacy_config {
+            legacy_config
+                .paths()
+                .paths()
+                .iter()
+                .map(|path| {
+                    let full_path = current_dir.as_ref().join(path.path().value());
+                    match Glob::new(full_path.to_str().expect("expected UTF-8")) {
+                        Ok(glob) => Ok(IgnoreGlob {
+                            matcher: glob.compile_matcher(),
+                            reason: path.reason().as_ref(),
+                        }),
+                        Err(err) => Err((path.span(), err)),
+                    }
+                })
+                .chain(globs)
+                .collect::<Result<Vec<_>, _>>()?
+        } else {
+            globs.collect::<Result<Vec<_>, _>>()?
+        };
 
         Ok(IgnoreMatcher {
             globs,
-            default_reason: config.reason().as_ref(),
+            default_reason: legacy_config.as_ref().and_then(|cfg| cfg.reason().as_ref()),
         })
     }
 }
 
 impl IgnoreMatcher<'_> {
-    pub fn empty() -> Self {
-        IgnoreMatcher {
-            globs: vec![],
-            default_reason: None,
-        }
-    }
-
     pub fn matched<P: AsRef<Path>>(&self, path: P) -> MatchResult<'_> {
         if self.globs.is_empty() {
             return MatchResult::Unmatched;

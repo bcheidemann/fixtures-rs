@@ -2,10 +2,12 @@ extern crate proc_macro;
 
 mod ignore_matcher;
 mod parse;
+mod utils;
 
 use ignore_matcher::{IgnoreMatcher, MatchResult};
-use parse::spanned::Spanned;
+use parse::{ignore_attribute::IgnoreAttribute, spanned::Spanned};
 use proc_macro::TokenStream;
+use proc_macro_error::{emit_warning, proc_macro_error};
 use quote::quote;
 use syn::{
     parse_macro_input, parse_quote, punctuated::Punctuated, AttrStyle, FnArg, Ident, ItemFn,
@@ -18,21 +20,41 @@ struct TestFnExpansion {
     tokens: proc_macro2::TokenStream,
 }
 
+#[proc_macro_error]
 #[proc_macro_attribute]
 pub fn fixtures(args: TokenStream, input: TokenStream) -> TokenStream {
     let args = parse_macro_input!(args as parse::args::Args);
     let test_fn = parse_macro_input!(input as ItemFn);
-    let fn_attrs = &test_fn.attrs;
     let fn_name = &test_fn.sig.ident;
     let fn_args = &test_fn.sig.inputs;
     let fn_output = &test_fn.sig.output;
     let fn_block = &test_fn.block;
 
+    if let Some(ignore) = &args.ignore {
+        emit_warning!(
+            ignore.span(),
+            "Use of deprecated property 'ignore'. Use `#[fixtures::ignore(\"<glob>\")]` instead."
+        );
+    }
+
+    let (fn_attrs, ignore_attrs) = {
+        let mut fn_attrs = Vec::new();
+        let mut ignore_attrs = Vec::new();
+        for attr in &test_fn.attrs {
+            match IgnoreAttribute::try_from_attribute(attr) {
+                Ok(None) => fn_attrs.push(attr),
+                Ok(Some(ignore_config)) => ignore_attrs.push(ignore_config),
+                Err(err) => return err.into_compile_error().into(),
+            }
+        }
+        (fn_attrs, ignore_attrs)
+    };
+
     let current_dir = std::env::current_dir().expect("failed to get current directory");
     let paths_iterator = globwalk::GlobWalkerBuilder::from_patterns(
         &current_dir,
         &args
-            .include()
+            .include
             .paths()
             .iter()
             .map(|lit_glob_path| lit_glob_path.value())
@@ -42,17 +64,13 @@ pub fn fixtures(args: TokenStream, input: TokenStream) -> TokenStream {
     .expect("failed to build glob walker")
     .filter_map(Result::ok);
 
-    let ignore_matcher = if let Some(config) = args.ignore() {
-        match IgnoreMatcher::new(config, current_dir) {
-            Ok(matcher) => matcher,
-            Err((path, err)) => {
-                return syn::Error::new(path.span(), format!("{err}"))
-                    .to_compile_error()
-                    .into()
-            }
+    let ignore_matcher = match IgnoreMatcher::new(&args.ignore, &ignore_attrs, current_dir) {
+        Ok(matcher) => matcher,
+        Err((span, err)) => {
+            return syn::Error::new(span, format!("{err}"))
+                .to_compile_error()
+                .into();
         }
-    } else {
-        IgnoreMatcher::empty()
     };
 
     let fn_non_path_args = {
@@ -99,9 +117,14 @@ pub fn fixtures(args: TokenStream, input: TokenStream) -> TokenStream {
         false
     });
 
-    if let Some(ignore) = args.ignore() {
-        if !is_test {
+    if !is_test {
+        if let Some(ignore) = &args.ignore {
             return syn::Error::new(ignore.span(), "The ignore option is only valid for test functions. This function doesn't have a `#[test]` attribute.")
+                .to_compile_error()
+                .into();
+        }
+        if let Some(ignore_attr) = ignore_attrs.first() {
+            return syn::Error::new(ignore_attr.span(), "The ignore option is only valid for test functions. This function doesn't have a `#[test]` attribute.")
                 .to_compile_error()
                 .into();
         }
@@ -117,7 +140,7 @@ pub fn fixtures(args: TokenStream, input: TokenStream) -> TokenStream {
                 path.path()
                     .to_str()
                     .expect("file path should be valid UTF-8"),
-                args.include().span(),
+                args.include.span(),
             );
             let similar_file_names = file_names.entry(file_name.clone()).or_insert(0usize);
             *similar_file_names += 1;
@@ -148,7 +171,7 @@ pub fn fixtures(args: TokenStream, input: TokenStream) -> TokenStream {
         .collect::<Vec<_>>();
 
     if expansions.is_empty() {
-        return syn::Error::new(args.include().span(), "No valid files found".to_string())
+        return syn::Error::new(args.include.span(), "No valid files found".to_string())
             .into_compile_error()
             .into();
     }

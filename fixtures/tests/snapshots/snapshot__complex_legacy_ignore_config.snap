@@ -20,7 +20,7 @@ mod test {
             name: test::StaticTestName("test::file_1_dot_txt"),
             ignore: false,
             ignore_message: ::core::option::Option::None,
-            source_file: "fixtures/examples/complex_ignore_config.rs",
+            source_file: "fixtures/examples/complex_legacy_ignore_config.rs",
             start_line: 20usize,
             start_col: 4usize,
             end_line: 20usize,
@@ -38,7 +38,7 @@ mod test {
     pub fn file_1_dot_txt() {
         test(
             ::std::path::Path::new(
-                "<repo>/tests/fixtures/complex_ignore_config/file_1.txt",
+                "<repo>/tests/fixtures/complex_legacy_ignore_config/file_1.txt",
             ),
         )
     }
@@ -52,7 +52,7 @@ mod test {
             ignore_message: ::core::option::Option::Some(
                 "default reason for ignoring file",
             ),
-            source_file: "fixtures/examples/complex_ignore_config.rs",
+            source_file: "fixtures/examples/complex_legacy_ignore_config.rs",
             start_line: 20usize,
             start_col: 4usize,
             end_line: 20usize,
@@ -71,7 +71,7 @@ mod test {
     pub fn file_2_dot_txt() {
         test(
             ::std::path::Path::new(
-                "<repo>/tests/fixtures/complex_ignore_config/file_2.txt",
+                "<repo>/tests/fixtures/complex_legacy_ignore_config/file_2.txt",
             ),
         )
     }
@@ -85,7 +85,7 @@ mod test {
             ignore_message: ::core::option::Option::Some(
                 "specific reason for ignoring file 3",
             ),
-            source_file: "fixtures/examples/complex_ignore_config.rs",
+            source_file: "fixtures/examples/complex_legacy_ignore_config.rs",
             start_line: 20usize,
             start_col: 4usize,
             end_line: 20usize,
@@ -104,7 +104,7 @@ mod test {
     pub fn file_3_dot_txt() {
         test(
             ::std::path::Path::new(
-                "<repo>/tests/fixtures/complex_ignore_config/file_3.txt",
+                "<repo>/tests/fixtures/complex_legacy_ignore_config/file_3.txt",
             ),
         )
     }

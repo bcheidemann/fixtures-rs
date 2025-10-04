@@ -20,10 +20,10 @@ mod test1 {
             name: test::StaticTestName("test1::file_1_dot_txt"),
             ignore: false,
             ignore_message: ::core::option::Option::None,
-            source_file: "fixtures/examples/ignore_globs.rs",
-            start_line: 15usize,
+            source_file: "fixtures/examples/legacy_ignore_globs.rs",
+            start_line: 14usize,
             start_col: 4usize,
-            end_line: 15usize,
+            end_line: 14usize,
             end_col: 9usize,
             compile_fail: false,
             no_run: false,
@@ -38,7 +38,7 @@ mod test1 {
     pub fn file_1_dot_txt() {
         test1(
             ::std::path::Path::new(
-                "<repo>/tests/fixtures/ignore_globs/file_1.txt",
+                "<repo>/tests/fixtures/legacy_ignore_globs/file_1.txt",
             ),
         )
     }
@@ -50,10 +50,10 @@ mod test1 {
             name: test::StaticTestName("test1::file_2_dot_ignore_dot_txt"),
             ignore: true,
             ignore_message: ::core::option::Option::Some("reason for ignoring file"),
-            source_file: "fixtures/examples/ignore_globs.rs",
-            start_line: 15usize,
+            source_file: "fixtures/examples/legacy_ignore_globs.rs",
+            start_line: 14usize,
             start_col: 4usize,
-            end_line: 15usize,
+            end_line: 14usize,
             end_col: 9usize,
             compile_fail: false,
             no_run: false,
@@ -69,7 +69,7 @@ mod test1 {
     pub fn file_2_dot_ignore_dot_txt() {
         test1(
             ::std::path::Path::new(
-                "<repo>/tests/fixtures/ignore_globs/file_2.ignore.txt",
+                "<repo>/tests/fixtures/legacy_ignore_globs/file_2.ignore.txt",
             ),
         )
     }
@@ -86,10 +86,10 @@ mod test2 {
             name: test::StaticTestName("test2::file_1_dot_txt"),
             ignore: false,
             ignore_message: ::core::option::Option::None,
-            source_file: "fixtures/examples/ignore_globs.rs",
-            start_line: 20usize,
+            source_file: "fixtures/examples/legacy_ignore_globs.rs",
+            start_line: 21usize,
             start_col: 4usize,
-            end_line: 20usize,
+            end_line: 21usize,
             end_col: 9usize,
             compile_fail: false,
             no_run: false,
@@ -104,7 +104,7 @@ mod test2 {
     pub fn file_1_dot_txt() {
         test2(
             ::std::path::Path::new(
-                "<repo>/tests/fixtures/ignore_globs/file_1.txt",
+                "<repo>/tests/fixtures/legacy_ignore_globs/file_1.txt",
             ),
         )
     }
@@ -116,10 +116,10 @@ mod test2 {
             name: test::StaticTestName("test2::file_2_dot_ignore_dot_txt"),
             ignore: true,
             ignore_message: ::core::option::Option::None,
-            source_file: "fixtures/examples/ignore_globs.rs",
-            start_line: 20usize,
+            source_file: "fixtures/examples/legacy_ignore_globs.rs",
+            start_line: 21usize,
             start_col: 4usize,
-            end_line: 20usize,
+            end_line: 21usize,
             end_col: 9usize,
             compile_fail: false,
             no_run: false,
@@ -135,7 +135,7 @@ mod test2 {
     pub fn file_2_dot_ignore_dot_txt() {
         test2(
             ::std::path::Path::new(
-                "<repo>/tests/fixtures/ignore_globs/file_2.ignore.txt",
+                "<repo>/tests/fixtures/legacy_ignore_globs/file_2.ignore.txt",
             ),
         )
     }

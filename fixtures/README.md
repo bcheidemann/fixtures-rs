@@ -118,8 +118,6 @@ fn test(path: &std::path::Path) {
 `fixtures` supports [`gitignore`'s extended glob syntax](https://git-scm.com/docs/gitignore#_pattern_format).
 
 ```rs
-use fixtures::fixtures;
-
 #[fixtures(["fixtures/*.{txt,data}", "!fixtures/skip.*.{txt,data}"])]
 #[test]
 fn test(path: &std::path::Path) {
@@ -136,12 +134,8 @@ entirely, you can simply use a negative glob, as discussed above. However, if yo
 you can do so as follows:
 
 ```rs
-use fixtures::fixtures;
-
-#[fixtures(
-  ["fixtures/*.{txt,data}"],
-  ignore = ["fixtures/ignored.txt"],
-)]
+#[fixtures(["fixtures/*.{txt,data}"])]
+#[fixtures::ignore("fixtures/ignored.txt")]
 #[test]
 fn test(path: &std::path::Path) {
   // This test will be run once for each fixture with the extension `txt` or `data`, except for `ignored.txt` which will
@@ -152,35 +146,29 @@ fn test(path: &std::path::Path) {
 In some cases you may wish to provide a reason for ignoring the test case.
 
 ```rs
-#[cfg(test)]
-#[fixtures(
-  ["fixtures/*.{txt,data}"],
-  ignore = [
-    { path = "fixtures/ignored.txt", reason = "reason for ignoring file" }
-  ],
+#[fixtures(["fixtures/*.{txt,data}"])]
+#[fixtures::ignore(
+  path = "fixtures/ignored.txt",
+  reason = "reason for ignoring file",
 )]
 #[test]
 fn test(path: &std::path::Path) {}
 ```
 
-The structure of the ignore option in EBNF notation is as follows:
+This feature can be used in combination with the `cfg_attr` macro to conditionally exclude tests only for certain
+configurations:
 
-```ebnf
-Ignore                = IgnorePath | IgnorePathList | IgnoreObject ;
-
-IgnorePathList        = "[]" | "[" IgnorePath { "," IgnorePath } [ "," ] "]" ;
-IgnoreObject          = IgnorePathsOnly | IgnorePathsWithReason ;
-
-IgnorePathsOnly       = "{" "paths" "=" (IgnorePath | IgnorePathList) [ "," ] "}" ;
-IgnorePathsWithReason = "{" "paths" "=" (IgnorePath | IgnorePathList) "," "reason" "=" StringLiteral [ "," ] "}" ;
-
-IgnorePath            = StringLiteral | IgnorePathObject ;
-IgnorePathObject      = PathOnly | PathWithReason ;
-
-PathOnly              = "{" "path" "=" StringLiteral [ "," ] "}" ;
-PathWithReason        = "{" "path" "=" StringLiteral "," "reason" "=" StringLiteral [ "," ] "}" ;
-
-StringLiteral         = /* Rust string literal */
+```rs
+#[fixtures(["fixtures/*"])]
+#[cfg_attr(
+  features = "js",
+  fixtures::ignore(
+    path = "fixtures/some_filesystem_stuff",
+    reason = "Filesystem operations are not supported for JS/WASM targets.",
+  )
+]
+#[test]
+fn test(path: &std::path::Path) {}
 ```
 
 This feature is only available for test functions; those with a `#[test]` attribute.
@@ -189,20 +177,16 @@ Note that the `ignore` glob will not be used to include files. This means that, 
 would have no effect, since none of the files matched by the include glob, are matched by the ignore glob.
 
 ```rs
-#[fixtures(
-  ["*.txt"],
-  ignore = ["*.txt.ignore"], // This won't work!
-)]
+#[fixtures(["*.txt"])
+#[fixtures::ignore("*.txt.ignore")] // This won't work!
 fn test(path: &std::path::Path) {}
 ```
 
 This can be fixed as shown in the following example.
 
 ```rs
-#[fixtures(
-  ["*.txt{,.ignore}"],
-  ignore = ["*.txt.ignore"], // This works as expected 🥳
-)]
+#[fixtures(["*.txt{,.ignore}"])
+#[fixtures::ignore("*.txt.ignore")] // This works as expected 🥳
 fn test(path: &std::path::Path) {}
 ```
 

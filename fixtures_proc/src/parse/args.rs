@@ -5,13 +5,13 @@ use syn::{
 };
 
 use super::{
-    ignore_config::IgnoreConfig, option_assignment::OptionAssignment, paths::Paths,
+    legacy_ignore_config::LegacyIgnoreConfig, option_assignment::OptionAssignment, paths::Paths,
     spanned::Spanned as _,
 };
 
 pub struct Args {
-    include: Paths,
-    ignore: Option<IgnoreConfig>,
+    pub include: Paths,
+    pub ignore: Option<LegacyIgnoreConfig>,
 }
 
 impl Parse for Args {
@@ -41,16 +41,6 @@ impl Parse for Args {
             input.parse::<Token![,]>()?;
         }
         Ok(Args { include, ignore })
-    }
-}
-
-impl Args {
-    pub fn include(&self) -> &Paths {
-        &self.include
-    }
-
-    pub fn ignore(&self) -> &Option<IgnoreConfig> {
-        &self.ignore
     }
 }
 

@@ -41,8 +41,8 @@ fn basic_usage() {
 }
 
 #[test]
-fn complex_ignore_config() {
-    test_example_expansion("complex_ignore_config");
+fn complex_legacy_ignore_config() {
+    test_example_expansion("complex_legacy_ignore_config");
 }
 
 #[test]
@@ -56,8 +56,8 @@ fn criterion() {
 }
 
 #[test]
-fn invalid_identifiers() {
-    test_example_expansion("invalid_identifiers");
+fn ignore_globs() {
+    test_example_expansion("ignore_globs");
 }
 
 #[test]
@@ -66,8 +66,13 @@ fn ignore_attributes() {
 }
 
 #[test]
-fn ignore_globs() {
-    test_example_expansion("ignore_globs");
+fn invalid_identifiers() {
+    test_example_expansion("invalid_identifiers");
+}
+
+#[test]
+fn legacy_ignore_globs() {
+    test_example_expansion("legacy_ignore_globs");
 }
 
 #[test]

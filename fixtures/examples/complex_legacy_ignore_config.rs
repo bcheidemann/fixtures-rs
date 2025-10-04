@@ -4,12 +4,12 @@ use std::path::Path;
 use fixtures::fixtures;
 
 #[fixtures(
-    ["fixtures/tests/fixtures/complex_ignore_config/*.txt"],
+    ["fixtures/tests/fixtures/complex_legacy_ignore_config/*.txt"],
     ignore = {
         paths = [
-            "fixtures/tests/fixtures/complex_ignore_config/file_2.txt",
+            "fixtures/tests/fixtures/complex_legacy_ignore_config/file_2.txt",
             {
-                path = "fixtures/tests/fixtures/complex_ignore_config/file_3.txt",
+                path = "fixtures/tests/fixtures/complex_legacy_ignore_config/file_3.txt",
                 reason = "specific reason for ignoring file 3",
             }
         ],

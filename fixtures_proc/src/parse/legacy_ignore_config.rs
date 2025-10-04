@@ -10,7 +10,7 @@ use crate::parse::assignment::Assignment;
 
 use super::spanned::Spanned;
 
-pub struct IgnoreConfig {
+pub struct LegacyIgnoreConfig {
     /// The span enclosing the ignore config
     span: Span,
     /// Path globs to be ignored.
@@ -19,7 +19,7 @@ pub struct IgnoreConfig {
     reason: Option<LitStr>,
 }
 
-impl Parse for IgnoreConfig {
+impl Parse for LegacyIgnoreConfig {
     fn parse(input: ParseStream) -> syn::Result<Self> {
         input.step(|cursor| match cursor.token_tree() {
             Some((proc_macro2::TokenTree::Group(group), next)) => {
@@ -33,13 +33,13 @@ impl Parse for IgnoreConfig {
     }
 }
 
-impl Spanned for IgnoreConfig {
+impl Spanned for LegacyIgnoreConfig {
     fn span(&self) -> Span {
         self.span
     }
 }
 
-impl IgnoreConfig {
+impl LegacyIgnoreConfig {
     pub fn paths(&self) -> &IgnorePaths {
         &self.paths
     }
@@ -51,11 +51,11 @@ impl IgnoreConfig {
     fn parse_group(group: proc_macro2::Group) -> syn::Result<Self> {
         match group.delimiter() {
             proc_macro2::Delimiter::Brace => syn::parse::Parser::parse2(
-                |input: ParseStream| IgnoreConfig::parse_object(input, group.span()),
+                |input: ParseStream| LegacyIgnoreConfig::parse_object(input, group.span()),
                 group.stream(),
             ),
             proc_macro2::Delimiter::Bracket => syn::parse::Parser::parse2(
-                |input: ParseStream| IgnoreConfig::parse_list(input, group.span()),
+                |input: ParseStream| LegacyIgnoreConfig::parse_list(input, group.span()),
                 group.stream(),
             ),
             _ => Err(syn::Error::new(
@@ -98,7 +98,7 @@ impl IgnoreConfig {
             input.parse::<Token![,]>()?;
         }
 
-        Ok(IgnoreConfig {
+        Ok(LegacyIgnoreConfig {
             span,
             paths: paths.ok_or_else(|| syn::Error::new(span, "The 'paths' field is missing."))?,
             reason,
@@ -107,7 +107,7 @@ impl IgnoreConfig {
 
     fn parse_list(input: ParseStream, span: Span) -> syn::Result<Self> {
         let ignore_paths = Punctuated::<IgnorePath, Token![,]>::parse_terminated(input)?;
-        Ok(IgnoreConfig {
+        Ok(LegacyIgnoreConfig {
             span,
             paths: IgnorePaths {
                 span,
@@ -120,7 +120,7 @@ impl IgnoreConfig {
     fn parse_literal(lit: proc_macro2::Literal) -> syn::Result<Self> {
         let tokens = lit.to_token_stream();
         let lit_str: LitStr = syn::parse2(tokens)?;
-        Ok(IgnoreConfig {
+        Ok(LegacyIgnoreConfig {
             span: lit_str.span(),
             paths: IgnorePaths::from_lit_str(lit_str),
             reason: None,
@@ -322,14 +322,15 @@ impl IgnorePath {
 
 #[cfg(test)]
 mod tests {
-    use super::IgnoreConfig;
+    use super::LegacyIgnoreConfig;
 
     #[test]
     fn correctly_parses_basic_ignore_config() {
         let input = r#"
             ["fixtures/ignored"]
         "#;
-        let config = syn::parse_str::<IgnoreConfig>(input).expect("Failed to parse ignore config");
+        let config =
+            syn::parse_str::<LegacyIgnoreConfig>(input).expect("Failed to parse ignore config");
 
         assert_eq!(config.paths.paths.len(), 1);
         assert_eq!(config.paths.paths[0].path().value(), "fixtures/ignored");
@@ -344,7 +345,8 @@ mod tests {
                 paths = ["fixtures/ignored"],
             }
         "#;
-        let config = syn::parse_str::<IgnoreConfig>(input).expect("Failed to parse ignore config");
+        let config =
+            syn::parse_str::<LegacyIgnoreConfig>(input).expect("Failed to parse ignore config");
 
         assert_eq!(config.paths.paths.len(), 1);
         assert_eq!(config.paths.paths[0].path().value(), "fixtures/ignored");
@@ -360,7 +362,8 @@ mod tests {
                 reason = "some good reason"
             }
         "#;
-        let config = syn::parse_str::<IgnoreConfig>(input).expect("Failed to parse ignore config");
+        let config =
+            syn::parse_str::<LegacyIgnoreConfig>(input).expect("Failed to parse ignore config");
 
         assert_eq!(config.paths.paths.len(), 1);
         assert_eq!(config.paths.paths[0].path().value(), "fixtures/ignored");
@@ -378,7 +381,8 @@ mod tests {
                 },
             }
         "#;
-        let config = syn::parse_str::<IgnoreConfig>(input).expect("Failed to parse ignore config");
+        let config =
+            syn::parse_str::<LegacyIgnoreConfig>(input).expect("Failed to parse ignore config");
 
         assert_eq!(config.paths.paths.len(), 1);
         assert_eq!(config.paths.paths[0].path().value(), "fixtures/ignored");
@@ -396,7 +400,8 @@ mod tests {
                 },
             }
         "#;
-        let config = syn::parse_str::<IgnoreConfig>(input).expect("Failed to parse ignore config");
+        let config =
+            syn::parse_str::<LegacyIgnoreConfig>(input).expect("Failed to parse ignore config");
 
         assert_eq!(config.paths.paths.len(), 1);
         assert_eq!(config.paths.paths[0].path().value(), "fixtures/ignored");
@@ -417,7 +422,8 @@ mod tests {
                 }],
             }
         "#;
-        let config = syn::parse_str::<IgnoreConfig>(input).expect("Failed to parse ignore config");
+        let config =
+            syn::parse_str::<LegacyIgnoreConfig>(input).expect("Failed to parse ignore config");
 
         assert_eq!(config.paths.paths.len(), 1);
         assert_eq!(config.paths.paths[0].path().value(), "fixtures/ignored");
@@ -435,7 +441,8 @@ mod tests {
                 }],
             }
         "#;
-        let config = syn::parse_str::<IgnoreConfig>(input).expect("Failed to parse ignore config");
+        let config =
+            syn::parse_str::<LegacyIgnoreConfig>(input).expect("Failed to parse ignore config");
 
         assert_eq!(config.paths.paths.len(), 1);
         assert_eq!(config.paths.paths[0].path().value(), "fixtures/ignored");
@@ -464,7 +471,8 @@ mod tests {
                 reason = "some default reason",
             }
         "#;
-        let config = syn::parse_str::<IgnoreConfig>(input).expect("Failed to parse ignore config");
+        let config =
+            syn::parse_str::<LegacyIgnoreConfig>(input).expect("Failed to parse ignore config");
 
         assert_eq!(config.paths.paths.len(), 3);
         assert_eq!(config.paths.paths[0].path().value(), "fixtures/ignored.0");
@@ -488,7 +496,8 @@ mod tests {
                 path = "fixtures/ignored",
             }]
         "#;
-        let config = syn::parse_str::<IgnoreConfig>(input).expect("Failed to parse ignore config");
+        let config =
+            syn::parse_str::<LegacyIgnoreConfig>(input).expect("Failed to parse ignore config");
 
         assert_eq!(config.paths.paths.len(), 1);
         assert_eq!(config.paths.paths[0].path().value(), "fixtures/ignored");
@@ -504,7 +513,8 @@ mod tests {
                 reason = "some good reason",
             }]
         "#;
-        let config = syn::parse_str::<IgnoreConfig>(input).expect("Failed to parse ignore config");
+        let config =
+            syn::parse_str::<LegacyIgnoreConfig>(input).expect("Failed to parse ignore config");
 
         assert_eq!(config.paths.paths.len(), 1);
         assert_eq!(config.paths.paths[0].path().value(), "fixtures/ignored");

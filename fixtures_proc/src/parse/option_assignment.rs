@@ -4,7 +4,7 @@ use syn::{
     Ident, Token,
 };
 
-use super::{ignore_config::IgnoreConfig, spanned::Spanned};
+use super::{legacy_ignore_config::LegacyIgnoreConfig, spanned::Spanned};
 
 pub enum OptionAssignment {
     Ignore(IgnoreOptionAssignment),
@@ -27,17 +27,17 @@ impl Parse for OptionAssignment {
 
 pub struct IgnoreOptionAssignment {
     span: Span,
-    config: IgnoreConfig,
+    config: LegacyIgnoreConfig,
 }
 
 impl IgnoreOptionAssignment {
-    pub fn into_ignore_config(self) -> IgnoreConfig {
+    pub fn into_ignore_config(self) -> LegacyIgnoreConfig {
         self.config
     }
 
     fn parse_from_ident(input: ParseStream, ident: Ident) -> syn::Result<Self> {
         input.parse::<Token![=]>()?;
-        let config: IgnoreConfig = input.parse()?;
+        let config: LegacyIgnoreConfig = input.parse()?;
         let span = ident
             .span()
             .join(config.span())
