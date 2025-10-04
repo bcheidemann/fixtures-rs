@@ -6,7 +6,7 @@ use syn::{
 use super::assignment::Assignment;
 
 pub struct IgnoreArgs {
-    pub path: LitStr,
+    pub paths: LitStr,
     pub reason: Option<LitStr>,
 }
 
@@ -26,26 +26,29 @@ impl IgnoreArgs {
         if !input.is_empty() {
             return Err(syn::Error::new(input.span(), "Unexpected token."));
         }
-        Ok(Self { path, reason: None })
+        Ok(Self {
+            paths: path,
+            reason: None,
+        })
     }
 
     fn parse_fields(input: ParseStream) -> syn::Result<Self> {
         let error_span = input.span();
-        let mut path = None;
+        let mut paths = None;
         let mut reason = None;
 
         while !input.is_empty() {
             let assignment = input.parse::<Assignment<LitStr>>()?;
 
             match assignment.ident().to_string().as_str() {
-                "path" => {
-                    if path.is_some() {
+                "paths" => {
+                    if paths.is_some() {
                         return Err(syn::Error::new(
                             assignment.ident().span(),
                             "Duplicate assignment.",
                         ));
                     }
-                    path = Some(assignment.into_value());
+                    paths = Some(assignment.into_value());
                 }
                 "reason" => {
                     if reason.is_some() {
@@ -59,7 +62,7 @@ impl IgnoreArgs {
                 _ => {
                     return Err(syn::Error::new(
                         assignment.ident().span(),
-                        "Invalid field identifier. Expected 'path' or 'reason'.",
+                        "Invalid field identifier. Expected 'paths' or 'reason'.",
                     ))
                 }
             }
@@ -72,7 +75,7 @@ impl IgnoreArgs {
         }
 
         Ok(Self {
-            path: path
+            paths: paths
                 .ok_or_else(|| syn::Error::new(error_span, "The 'path' field is missing."))?,
             reason,
         })

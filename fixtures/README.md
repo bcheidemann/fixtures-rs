@@ -148,7 +148,7 @@ In some cases you may wish to provide a reason for ignoring the test case.
 ```rs
 #[fixtures(["fixtures/*.{txt,data}"])]
 #[fixtures::ignore(
-  path = "fixtures/ignored.txt",
+  paths = "fixtures/ignored.txt",
   reason = "reason for ignoring file",
 )]
 #[test]
@@ -163,7 +163,7 @@ configurations:
 #[cfg_attr(
   features = "js",
   fixtures::ignore(
-    path = "fixtures/some_filesystem_stuff",
+    paths = "fixtures/some_filesystem_stuff",
     reason = "Filesystem operations are not supported for JS/WASM targets.",
   )
 ]

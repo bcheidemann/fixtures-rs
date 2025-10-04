@@ -32,13 +32,13 @@ impl<'config> IgnoreMatcher<'config> {
         current_dir: P,
     ) -> Result<Self, (Span, globset::Error)> {
         let globs = ignore_args.iter().map(|attr| {
-            let full_path = current_dir.as_ref().join(attr.args.path.value());
+            let full_path = current_dir.as_ref().join(attr.args.paths.value());
             match Glob::new(full_path.to_str().expect("expected UTF-8")) {
                 Ok(glob) => Ok(IgnoreGlob {
                     matcher: glob.compile_matcher(),
                     reason: attr.args.reason.as_ref(),
                 }),
-                Err(err) => Err((attr.args.path.span(), err)),
+                Err(err) => Err((attr.args.paths.span(), err)),
             }
         });
 

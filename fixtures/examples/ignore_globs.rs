@@ -7,7 +7,7 @@ use fixtures::fixtures;
 #[cfg_attr(
     test,
     fixtures::ignore(
-        path = "fixtures/tests/fixtures/ignore_globs/*.ignore.txt",
+        paths = "fixtures/tests/fixtures/ignore_globs/*.ignore.txt",
         reason = "reason for ignoring file",
     )
 )]
