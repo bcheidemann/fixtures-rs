@@ -6,7 +6,7 @@ to generate tests from the filesystem, using glob patterns.
 ## Example
 
 ```rs
-#[fixtures(["fixtures/*.txt"])]
+#[fixtures(["path/to/fixtures/*.txt"])]
 #[test]
 fn test(path: &std::path::Path) {
   // This test will be run once for each file matching the glob pattern
@@ -16,7 +16,13 @@ fn test(path: &std::path::Path) {
 To ensure tests re-run when the fixtures change, add the following line to `build.rs`.
 
 ```rs
-fixtures::build::watch_dir("fixtures");
+fixtures::build::watch_dir("path/to/fixtures");
+```
+
+Or, if you prefer to avoid adding build dependencies to your project:
+
+```rs
+println!("cargo:rerun-if-changed=path/to/fixtures");
 ```
 
 ## Comparison to [`datatest`](https://github.com/commure/datatest) and [`datatest-stable`](https://crates.io/crates/datatest-stable)
