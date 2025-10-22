@@ -7,7 +7,7 @@ mod utils;
 use ignore_matcher::{IgnoreMatcher, MatchResult};
 use parse::{ignore_attribute::IgnoreAttribute, spanned::Spanned};
 use proc_macro::TokenStream;
-use proc_macro_error::{emit_warning, proc_macro_error};
+use proc_macro_error2::{emit_warning, proc_macro_error};
 use quote::quote;
 use syn::{
     parse_macro_input, parse_quote, punctuated::Punctuated, AttrStyle, FnArg, Ident, ItemFn,

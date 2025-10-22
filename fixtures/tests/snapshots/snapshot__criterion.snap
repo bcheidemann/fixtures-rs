@@ -3,10 +3,10 @@ source: fixtures/tests/snapshot.rs
 expression: expansion
 ---
 #![feature(prelude_import)]
-#[prelude_import]
-use std::prelude::rust_2021::*;
 #[macro_use]
 extern crate std;
+#[prelude_import]
+use std::prelude::rust_2021::*;
 use std::path::Path;
 use fixtures::fixtures;
 struct Criterion;

@@ -3,82 +3,26 @@ source: fixtures/tests/snapshot.rs
 expression: expansion
 ---
 #![feature(prelude_import)]
-#[prelude_import]
-use std::prelude::rust_2021::*;
 #[macro_use]
 extern crate std;
+#[prelude_import]
+use std::prelude::rust_2021::*;
 use std::path::Path;
 use fixtures::fixtures;
 fn test(_path: &Path) {}
 mod test {
     use super::*;
-    pub fn _abstract() {
+    pub fn _priv() {
         test(
             ::std::path::Path::new(
-                "<repo>/tests/fixtures/invalid_identifiers/abstract",
+                "<repo>/tests/fixtures/invalid_identifiers/priv",
             ),
         )
     }
-    pub fn _impl() {
+    pub fn _crate() {
         test(
             ::std::path::Path::new(
-                "<repo>/tests/fixtures/invalid_identifiers/impl",
-            ),
-        )
-    }
-    pub fn _move() {
-        test(
-            ::std::path::Path::new(
-                "<repo>/tests/fixtures/invalid_identifiers/move",
-            ),
-        )
-    }
-    pub fn _unsized() {
-        test(
-            ::std::path::Path::new(
-                "<repo>/tests/fixtures/invalid_identifiers/unsized",
-            ),
-        )
-    }
-    pub fn _ref() {
-        test(
-            ::std::path::Path::new(
-                "<repo>/tests/fixtures/invalid_identifiers/ref",
-            ),
-        )
-    }
-    pub fn _box() {
-        test(
-            ::std::path::Path::new(
-                "<repo>/tests/fixtures/invalid_identifiers/box",
-            ),
-        )
-    }
-    pub fn _override() {
-        test(
-            ::std::path::Path::new(
-                "<repo>/tests/fixtures/invalid_identifiers/override",
-            ),
-        )
-    }
-    pub fn _do() {
-        test(
-            ::std::path::Path::new(
-                "<repo>/tests/fixtures/invalid_identifiers/do",
-            ),
-        )
-    }
-    pub fn _match() {
-        test(
-            ::std::path::Path::new(
-                "<repo>/tests/fixtures/invalid_identifiers/match",
-            ),
-        )
-    }
-    pub fn _in() {
-        test(
-            ::std::path::Path::new(
-                "<repo>/tests/fixtures/invalid_identifiers/in",
+                "<repo>/tests/fixtures/invalid_identifiers/crate",
             ),
         )
     }
@@ -89,38 +33,17 @@ mod test {
             ),
         )
     }
-    pub fn _enum() {
+    pub fn _move() {
         test(
             ::std::path::Path::new(
-                "<repo>/tests/fixtures/invalid_identifiers/enum",
+                "<repo>/tests/fixtures/invalid_identifiers/move",
             ),
         )
     }
-    pub fn _if() {
+    pub fn _static() {
         test(
             ::std::path::Path::new(
-                "<repo>/tests/fixtures/invalid_identifiers/if",
-            ),
-        )
-    }
-    pub fn _async() {
-        test(
-            ::std::path::Path::new(
-                "<repo>/tests/fixtures/invalid_identifiers/async",
-            ),
-        )
-    }
-    pub fn _return() {
-        test(
-            ::std::path::Path::new(
-                "<repo>/tests/fixtures/invalid_identifiers/return",
-            ),
-        )
-    }
-    pub fn _gen() {
-        test(
-            ::std::path::Path::new(
-                "<repo>/tests/fixtures/invalid_identifiers/gen",
+                "<repo>/tests/fixtures/invalid_identifiers/static",
             ),
         )
     }
@@ -131,24 +54,31 @@ mod test {
             ),
         )
     }
-    pub fn _dyn() {
+    pub fn _type() {
         test(
             ::std::path::Path::new(
-                "<repo>/tests/fixtures/invalid_identifiers/dyn",
+                "<repo>/tests/fixtures/invalid_identifiers/type",
             ),
         )
     }
-    pub fn _struct() {
+    pub fn _enum() {
         test(
             ::std::path::Path::new(
-                "<repo>/tests/fixtures/invalid_identifiers/struct",
+                "<repo>/tests/fixtures/invalid_identifiers/enum",
             ),
         )
     }
-    pub fn _use() {
+    pub fn _typeof() {
         test(
             ::std::path::Path::new(
-                "<repo>/tests/fixtures/invalid_identifiers/use",
+                "<repo>/tests/fixtures/invalid_identifiers/typeof",
+            ),
+        )
+    }
+    pub fn _unsized() {
+        test(
+            ::std::path::Path::new(
+                "<repo>/tests/fixtures/invalid_identifiers/unsized",
             ),
         )
     }
@@ -159,24 +89,94 @@ mod test {
             ),
         )
     }
-    pub fn _await() {
+    pub fn _return() {
         test(
             ::std::path::Path::new(
-                "<repo>/tests/fixtures/invalid_identifiers/await",
+                "<repo>/tests/fixtures/invalid_identifiers/return",
             ),
         )
     }
-    pub fn _type() {
+    pub fn _pub() {
         test(
             ::std::path::Path::new(
-                "<repo>/tests/fixtures/invalid_identifiers/type",
+                "<repo>/tests/fixtures/invalid_identifiers/pub",
             ),
         )
     }
-    pub fn _priv() {
+    pub fn _in() {
         test(
             ::std::path::Path::new(
-                "<repo>/tests/fixtures/invalid_identifiers/priv",
+                "<repo>/tests/fixtures/invalid_identifiers/in",
+            ),
+        )
+    }
+    pub fn _extern() {
+        test(
+            ::std::path::Path::new(
+                "<repo>/tests/fixtures/invalid_identifiers/extern",
+            ),
+        )
+    }
+    pub fn _fn() {
+        test(
+            ::std::path::Path::new(
+                "<repo>/tests/fixtures/invalid_identifiers/fn",
+            ),
+        )
+    }
+    pub fn _async() {
+        test(
+            ::std::path::Path::new(
+                "<repo>/tests/fixtures/invalid_identifiers/async",
+            ),
+        )
+    }
+    pub fn _use() {
+        test(
+            ::std::path::Path::new(
+                "<repo>/tests/fixtures/invalid_identifiers/use",
+            ),
+        )
+    }
+    pub fn _impl() {
+        test(
+            ::std::path::Path::new(
+                "<repo>/tests/fixtures/invalid_identifiers/impl",
+            ),
+        )
+    }
+    pub fn _false() {
+        test(
+            ::std::path::Path::new(
+                "<repo>/tests/fixtures/invalid_identifiers/false",
+            ),
+        )
+    }
+    pub fn _mod() {
+        test(
+            ::std::path::Path::new(
+                "<repo>/tests/fixtures/invalid_identifiers/mod",
+            ),
+        )
+    }
+    pub fn _match() {
+        test(
+            ::std::path::Path::new(
+                "<repo>/tests/fixtures/invalid_identifiers/match",
+            ),
+        )
+    }
+    pub fn _override() {
+        test(
+            ::std::path::Path::new(
+                "<repo>/tests/fixtures/invalid_identifiers/override",
+            ),
+        )
+    }
+    pub fn _yield() {
+        test(
+            ::std::path::Path::new(
+                "<repo>/tests/fixtures/invalid_identifiers/yield",
             ),
         )
     }
@@ -187,10 +187,94 @@ mod test {
             ),
         )
     }
-    pub fn _crate() {
+    pub fn _become() {
         test(
             ::std::path::Path::new(
-                "<repo>/tests/fixtures/invalid_identifiers/crate",
+                "<repo>/tests/fixtures/invalid_identifiers/become",
+            ),
+        )
+    }
+    pub fn _do() {
+        test(
+            ::std::path::Path::new(
+                "<repo>/tests/fixtures/invalid_identifiers/do",
+            ),
+        )
+    }
+    pub fn _trait() {
+        test(
+            ::std::path::Path::new(
+                "<repo>/tests/fixtures/invalid_identifiers/trait",
+            ),
+        )
+    }
+    pub fn _mut() {
+        test(
+            ::std::path::Path::new(
+                "<repo>/tests/fixtures/invalid_identifiers/mut",
+            ),
+        )
+    }
+    pub fn _as() {
+        test(
+            ::std::path::Path::new(
+                "<repo>/tests/fixtures/invalid_identifiers/as",
+            ),
+        )
+    }
+    pub fn _true() {
+        test(
+            ::std::path::Path::new(
+                "<repo>/tests/fixtures/invalid_identifiers/true",
+            ),
+        )
+    }
+    pub fn _for() {
+        test(
+            ::std::path::Path::new(
+                "<repo>/tests/fixtures/invalid_identifiers/for",
+            ),
+        )
+    }
+    pub fn _virtual() {
+        test(
+            ::std::path::Path::new(
+                "<repo>/tests/fixtures/invalid_identifiers/virtual",
+            ),
+        )
+    }
+    pub fn _break() {
+        test(
+            ::std::path::Path::new(
+                "<repo>/tests/fixtures/invalid_identifiers/break",
+            ),
+        )
+    }
+    pub fn _let() {
+        test(
+            ::std::path::Path::new(
+                "<repo>/tests/fixtures/invalid_identifiers/let",
+            ),
+        )
+    }
+    pub fn _abstract() {
+        test(
+            ::std::path::Path::new(
+                "<repo>/tests/fixtures/invalid_identifiers/abstract",
+            ),
+        )
+    }
+    pub fn _final() {
+        test(
+            ::std::path::Path::new(
+                "<repo>/tests/fixtures/invalid_identifiers/final",
+            ),
+        )
+    }
+    pub fn _if() {
+        test(
+            ::std::path::Path::new(
+                "<repo>/tests/fixtures/invalid_identifiers/if",
             ),
         )
     }
@@ -208,164 +292,10 @@ mod test {
             ),
         )
     }
-    pub fn _self() {
+    pub fn _gen() {
         test(
             ::std::path::Path::new(
-                "<repo>/tests/fixtures/invalid_identifiers/self",
-            ),
-        )
-    }
-    pub fn _unsafe() {
-        test(
-            ::std::path::Path::new(
-                "<repo>/tests/fixtures/invalid_identifiers/unsafe",
-            ),
-        )
-    }
-    pub fn _static() {
-        test(
-            ::std::path::Path::new(
-                "<repo>/tests/fixtures/invalid_identifiers/static",
-            ),
-        )
-    }
-    pub fn _let() {
-        test(
-            ::std::path::Path::new(
-                "<repo>/tests/fixtures/invalid_identifiers/let",
-            ),
-        )
-    }
-    pub fn _virtual() {
-        test(
-            ::std::path::Path::new(
-                "<repo>/tests/fixtures/invalid_identifiers/virtual",
-            ),
-        )
-    }
-    pub fn _trait() {
-        test(
-            ::std::path::Path::new(
-                "<repo>/tests/fixtures/invalid_identifiers/trait",
-            ),
-        )
-    }
-    pub fn _for() {
-        test(
-            ::std::path::Path::new(
-                "<repo>/tests/fixtures/invalid_identifiers/for",
-            ),
-        )
-    }
-    pub fn _mut() {
-        test(
-            ::std::path::Path::new(
-                "<repo>/tests/fixtures/invalid_identifiers/mut",
-            ),
-        )
-    }
-    pub fn _try() {
-        test(
-            ::std::path::Path::new(
-                "<repo>/tests/fixtures/invalid_identifiers/try",
-            ),
-        )
-    }
-    pub fn _yield() {
-        test(
-            ::std::path::Path::new(
-                "<repo>/tests/fixtures/invalid_identifiers/yield",
-            ),
-        )
-    }
-    pub fn _as() {
-        test(
-            ::std::path::Path::new(
-                "<repo>/tests/fixtures/invalid_identifiers/as",
-            ),
-        )
-    }
-    pub fn _become() {
-        test(
-            ::std::path::Path::new(
-                "<repo>/tests/fixtures/invalid_identifiers/become",
-            ),
-        )
-    }
-    pub fn _final() {
-        test(
-            ::std::path::Path::new(
-                "<repo>/tests/fixtures/invalid_identifiers/final",
-            ),
-        )
-    }
-    pub fn _fn() {
-        test(
-            ::std::path::Path::new(
-                "<repo>/tests/fixtures/invalid_identifiers/fn",
-            ),
-        )
-    }
-    pub fn _pub() {
-        test(
-            ::std::path::Path::new(
-                "<repo>/tests/fixtures/invalid_identifiers/pub",
-            ),
-        )
-    }
-    pub fn _true() {
-        test(
-            ::std::path::Path::new(
-                "<repo>/tests/fixtures/invalid_identifiers/true",
-            ),
-        )
-    }
-    pub fn _break() {
-        test(
-            ::std::path::Path::new(
-                "<repo>/tests/fixtures/invalid_identifiers/break",
-            ),
-        )
-    }
-    pub fn _extern() {
-        test(
-            ::std::path::Path::new(
-                "<repo>/tests/fixtures/invalid_identifiers/extern",
-            ),
-        )
-    }
-    pub fn _where() {
-        test(
-            ::std::path::Path::new(
-                "<repo>/tests/fixtures/invalid_identifiers/where",
-            ),
-        )
-    }
-    pub fn _continue() {
-        test(
-            ::std::path::Path::new(
-                "<repo>/tests/fixtures/invalid_identifiers/continue",
-            ),
-        )
-    }
-    pub fn _false() {
-        test(
-            ::std::path::Path::new(
-                "<repo>/tests/fixtures/invalid_identifiers/false",
-            ),
-        )
-    }
-    pub fn _while() {
-        test(
-            ::std::path::Path::new(
-                "<repo>/tests/fixtures/invalid_identifiers/while",
-            ),
-        )
-    }
-    pub fn _mod() {
-        test(
-            ::std::path::Path::new(
-                "<repo>/tests/fixtures/invalid_identifiers/mod",
+                "<repo>/tests/fixtures/invalid_identifiers/gen",
             ),
         )
     }
@@ -376,67 +306,137 @@ mod test {
             ),
         )
     }
-    pub fn _typeof() {
+    pub fn _struct() {
         test(
             ::std::path::Path::new(
-                "<repo>/tests/fixtures/invalid_identifiers/typeof",
+                "<repo>/tests/fixtures/invalid_identifiers/struct",
+            ),
+        )
+    }
+    pub fn _where() {
+        test(
+            ::std::path::Path::new(
+                "<repo>/tests/fixtures/invalid_identifiers/where",
+            ),
+        )
+    }
+    pub fn _while() {
+        test(
+            ::std::path::Path::new(
+                "<repo>/tests/fixtures/invalid_identifiers/while",
+            ),
+        )
+    }
+    pub fn _dyn() {
+        test(
+            ::std::path::Path::new(
+                "<repo>/tests/fixtures/invalid_identifiers/dyn",
+            ),
+        )
+    }
+    pub fn _unsafe() {
+        test(
+            ::std::path::Path::new(
+                "<repo>/tests/fixtures/invalid_identifiers/unsafe",
+            ),
+        )
+    }
+    pub fn _self() {
+        test(
+            ::std::path::Path::new(
+                "<repo>/tests/fixtures/invalid_identifiers/self",
+            ),
+        )
+    }
+    pub fn _await() {
+        test(
+            ::std::path::Path::new(
+                "<repo>/tests/fixtures/invalid_identifiers/await",
+            ),
+        )
+    }
+    pub fn _ref() {
+        test(
+            ::std::path::Path::new(
+                "<repo>/tests/fixtures/invalid_identifiers/ref",
+            ),
+        )
+    }
+    pub fn _continue() {
+        test(
+            ::std::path::Path::new(
+                "<repo>/tests/fixtures/invalid_identifiers/continue",
+            ),
+        )
+    }
+    pub fn _try() {
+        test(
+            ::std::path::Path::new(
+                "<repo>/tests/fixtures/invalid_identifiers/try",
+            ),
+        )
+    }
+    pub fn _box() {
+        test(
+            ::std::path::Path::new(
+                "<repo>/tests/fixtures/invalid_identifiers/box",
             ),
         )
     }
     pub const EXPANSIONS: &[fn()] = &[
-        _abstract,
-        _impl,
-        _move,
-        _unsized,
-        _ref,
-        _box,
-        _override,
-        _do,
-        _match,
-        _in,
-        _else,
-        _enum,
-        _if,
-        _async,
-        _return,
-        _gen,
-        __,
-        _dyn,
-        _struct,
-        _use,
-        _const,
-        _await,
-        _type,
         _priv,
-        _0_numeric_prefix_dot_txt,
         _crate,
+        _else,
+        _move,
+        _static,
+        __,
+        _type,
+        _enum,
+        _typeof,
+        _unsized,
+        _const,
+        _return,
+        _pub,
+        _in,
+        _extern,
+        _fn,
+        _async,
+        _use,
+        _impl,
+        _false,
+        _mod,
+        _match,
+        _override,
+        _yield,
+        _0_numeric_prefix_dot_txt,
+        _become,
+        _do,
+        _trait,
+        _mut,
+        _as,
+        _true,
+        _for,
+        _virtual,
+        _break,
+        _let,
+        _abstract,
+        _final,
+        _if,
         _macro,
         _super,
-        _self,
-        _unsafe,
-        _static,
-        _let,
-        _virtual,
-        _trait,
-        _for,
-        _mut,
-        _try,
-        _yield,
-        _as,
-        _become,
-        _final,
-        _fn,
-        _pub,
-        _true,
-        _break,
-        _extern,
-        _where,
-        _continue,
-        _false,
-        _while,
-        _mod,
+        _gen,
         _loop,
-        _typeof,
+        _struct,
+        _where,
+        _while,
+        _dyn,
+        _unsafe,
+        _self,
+        _await,
+        _ref,
+        _continue,
+        _try,
+        _box,
     ];
 }
 #[allow(dead_code)]
