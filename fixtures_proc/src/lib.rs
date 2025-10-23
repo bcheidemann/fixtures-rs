@@ -51,7 +51,7 @@ pub fn fixtures(args: TokenStream, input: TokenStream) -> TokenStream {
     };
 
     let current_dir = std::env::current_dir().expect("failed to get current directory");
-    let paths_iterator = globwalk::GlobWalkerBuilder::from_patterns(
+    let mut paths = globwalk::GlobWalkerBuilder::from_patterns(
         &current_dir,
         &args
             .include
@@ -62,7 +62,10 @@ pub fn fixtures(args: TokenStream, input: TokenStream) -> TokenStream {
     )
     .build()
     .expect("failed to build glob walker")
-    .filter_map(Result::ok);
+    .filter_map(Result::ok)
+    .collect::<Vec<_>>();
+    paths.sort_by(|a, b| a.path().cmp(b.path()));
+    let paths_iterator = paths.into_iter();
 
     let ignore_matcher = match IgnoreMatcher::new(&args.ignore, &ignore_attrs, current_dir) {
         Ok(matcher) => matcher,

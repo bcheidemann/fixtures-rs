@@ -3,10 +3,10 @@ source: fixtures/tests/snapshot.rs
 expression: expansion
 ---
 #![feature(prelude_import)]
-#[macro_use]
-extern crate std;
 #[prelude_import]
 use std::prelude::rust_2021::*;
+#[macro_use]
+extern crate std;
 use std::path::Path;
 use fixtures::fixtures;
 fn test1(_path: &Path) {}
